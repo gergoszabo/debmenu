@@ -9,6 +9,12 @@ public class Publish
     {
         try
         {
+            var skipPublish = Environment.GetCommandLineArgs().Any(a => a == "--skip-publish");
+            if (skipPublish)
+            {
+                return;
+            }
+
             ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"));
             ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY"));
         }
