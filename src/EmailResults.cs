@@ -4,6 +4,23 @@ using MimeKit;
 
 public class EmailResults
 {
+    public static void CheckEnvVariables()
+    {
+        try
+        {
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_FROM"));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_TO"));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_SERVER"));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_USERNAME"));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_PASSWORD"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            Environment.Exit(-1);
+        }
+    }
+
     public static void SendScrapeResults(IScrapeResult[] results)
     {
         var skipEmail = Environment.GetCommandLineArgs().Any(a => a == "--skip-email");

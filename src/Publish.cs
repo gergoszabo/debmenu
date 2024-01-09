@@ -5,6 +5,20 @@ using Amazon.S3.Model;
 
 public class Publish
 {
+    public static void CheckEnvVariables()
+    {
+        try
+        {
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID"));
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY"));
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
+            Environment.Exit(-1);
+        }
+    }
+
     public static void UploadToS3()
     {
         try
@@ -16,13 +30,13 @@ public class Publish
                 return;
             }
 
-            string? accessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
-            string? secretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
+            string? AWS_ACCESS_KEY_ID = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
+            string? AWS_SECRET_ACCESS_KEY = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
 
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(accessKeyId);
-            ArgumentNullException.ThrowIfNullOrWhiteSpace(secretAccessKey);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(AWS_ACCESS_KEY_ID);
+            ArgumentNullException.ThrowIfNullOrWhiteSpace(AWS_SECRET_ACCESS_KEY);
 
-            var client = new AmazonS3Client(accessKeyId, secretAccessKey, RegionEndpoint.EUCentral2);
+            var client = new AmazonS3Client(AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, RegionEndpoint.EUCentral2);
 
             var directory = "results";
             var files = Directory.GetFiles(directory);

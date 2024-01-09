@@ -1,5 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
+Publish.CheckEnvVariables();
+EmailResults.CheckEnvVariables();
+
 var directory = "results";
 if (Directory.Exists(directory))
 {
