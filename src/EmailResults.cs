@@ -8,6 +8,12 @@ public class EmailResults
     {
         try
         {
+            var skipEmail = Environment.GetCommandLineArgs().Any(a => a == "--skip-email");
+            if (skipEmail)
+            {
+                return;
+            }
+
             ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_FROM"));
             ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_TO"));
             ArgumentNullException.ThrowIfNullOrWhiteSpace(Environment.GetEnvironmentVariable("EMAIL_SERVER"));
