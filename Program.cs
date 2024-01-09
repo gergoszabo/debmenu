@@ -20,3 +20,5 @@ var results = scrapers.Select(scraper => scraper.Scrape().GetAwaiter().GetResult
 ScraperResultHandler.GenerateHtmlFromResults(results);
 
 Publish.UploadToS3();
+
+EmailResults.SendScrapeResults(results);

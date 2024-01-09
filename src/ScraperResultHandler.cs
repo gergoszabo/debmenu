@@ -82,7 +82,7 @@ public static class ScraperResultHandler
             <ul>
                 {string.Join("", listItems)}
             </ul>
-            Generated at {DateTime.Now.ToString("yyyy.MM.dd. HH:mm:ss")}"
+            Generated at {DateTime.Now.ToString("yyyy.MM.dd. HH:mm:ss")}
         """;
 
         File.WriteAllText($"{ResultDirectory}{Path.DirectorySeparatorChar}index.html", html);

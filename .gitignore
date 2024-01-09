@@ -4,3 +4,4 @@ obj
 .vscode
 results
 .DS_Store
+env_variables.prod.sh
