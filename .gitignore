@@ -1,0 +1,6 @@
+*.png
+bin
+obj
+.vscode
+results
+.DS_Store
