@@ -9,6 +9,13 @@ public class Publish
     {
         try
         {
+            var skipPublish = Environment.GetCommandLineArgs().Any(a => a == "--skip-publish");
+            if (skipPublish)
+            {
+                Console.WriteLine("--skip-publish flag provided, skipping publish.");
+                return;
+            }
+
             string? accessKeyId = Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID");
             string? secretAccessKey = Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY");
 
