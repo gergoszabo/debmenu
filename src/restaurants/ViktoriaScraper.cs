@@ -40,6 +40,18 @@ public class ViktoriaScraper : Scraper
                     {
                         coursesForEachDay[currentDay]?.Add(div.Text);
                     }
+                    // Handle special case, one per month
+                    else if (div.GetAttribute("class") == "featured-desc")
+                    {
+                        if (div.Text.Trim().Length > 0)
+                        {
+                            var text = string.Join("<br>", div
+                                .FindElements(By.TagName("p"))
+                                .Select(p => p.Text.Trim())
+                                .Where(p => p.Trim().Length > 0));
+                            coursesForEachDay[currentDay]?.Add(text + "<br><br>");
+                        }
+                    }
                 });
 
             return Task.FromResult<IScrapeResult>(new SeleniumMenuScraperResult
