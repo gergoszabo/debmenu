@@ -1,3 +1,7 @@
+using System.Globalization;
+using Amazon;
+using Amazon.Rekognition;
+using Amazon.Rekognition.Model;
 using ImageMagick;
 using OpenQA.Selenium;
 
@@ -8,6 +12,8 @@ public class HuseScraper : Scraper
     public override string Name => "Hüse";
 
     public override By? Selector => By.ClassName("napimenu");
+
+    private bool detectText => Environment.GetCommandLineArgs().Contains("--detect-text");
 
     protected async override Task<IScrapeResult> ScrapeInternal(IWebDriver webDriver, IWebElement? element)
     {
@@ -20,6 +26,14 @@ public class HuseScraper : Scraper
             var bytes = await new HttpClient().GetByteArrayAsync(imgSrc);
 
             var cleanedUpImageBytes = cleanupImage(bytes);
+
+            File.WriteAllBytes("results/huse.png", cleanedUpImageBytes);
+
+            Console.WriteLine("DetectText: " + detectText.ToString());
+            if (detectText)
+            {
+                return DetectTextOnImage(cleanedUpImageBytes);
+            }
 
             return new ImageScraperResult
             {
@@ -45,5 +59,87 @@ public class HuseScraper : Scraper
         img.Evaluate(Channels.All, EvaluateOperator.Add, 50);
 
         return img.ToByteArray(MagickFormat.Png);
+    }
+
+    private SeleniumMenuScraperResult DetectTextOnImage(byte[] imageBytes)
+    {
+        DetectTextRequest detectTextRequest = new DetectTextRequest()
+        {
+            Image = new Image()
+            {
+                Bytes = new MemoryStream(imageBytes)
+            }
+        };
+        Console.WriteLine("Making DetectText request");
+        DetectTextResponse detectTextResponse = new AmazonRekognitionClient(RegionEndpoint.EUCentral1)
+            .DetectTextAsync(detectTextRequest).GetAwaiter().GetResult();
+        Console.WriteLine($"DetectText response {detectTextResponse.HttpStatusCode}");
+
+        foreach (TextDetection text in detectTextResponse.TextDetections)
+        {
+            Console.WriteLine("Detected: " + text.DetectedText);
+            Console.WriteLine("Confidence: " + text.Confidence);
+            Console.WriteLine("Id : " + text.Id);
+            Console.WriteLine("Parent Id: " + text.ParentId);
+            Console.WriteLine("Type: " + text.Type);
+        }
+
+        return processDetectTextResponse(detectTextResponse);
+    }
+
+    private SeleniumMenuScraperResult processDetectTextResponse(DetectTextResponse detectTextResponse)
+    {
+        var dates = parseDatesFromDateRangeLine(detectTextResponse.TextDetections[1].DetectedText);
+
+        Dictionary<string, List<string>> coursesForEachDay = [];
+        string currentDay = "";
+        // 0: Heti menü
+        // 1: DateRange
+        // 2: 2000 Ft
+        // 3: days
+        var dateIndex = 0;
+        for (int i = 3; i < detectTextResponse.TextDetections.Count; i++)
+        {
+            var td = detectTextResponse.TextDetections[i];
+            var lowerText = td.DetectedText.ToLower();
+
+            if (Utils.DAYS_LOWER_HU.Any(d => d == lowerText))
+            {
+                currentDay = $"{dates[dateIndex++]} {td.DetectedText}";
+                coursesForEachDay.Add(currentDay, new());
+            }
+            else if (td.DetectedText.ToLower() == "***")
+            {
+                break;
+            }
+            else
+            {
+                coursesForEachDay[currentDay].Add(td.DetectedText);
+            }
+        }
+
+        return new SeleniumMenuScraperResult()
+        {
+            Menu = coursesForEachDay,
+            Name = Name,
+            Successful = true
+        };
+    }
+
+    private static List<string> parseDatesFromDateRangeLine(string dateRangeLine)
+    {
+        // JANUÁR 8. ÉS 12. KÖZÖTT
+        var dateRange = dateRangeLine.ToLower()
+            .Replace("között", "")
+            .Trim()
+            .Split("és")
+            .Select(s => s.Trim())
+            .ToArray();
+        // ["január 8.", "12."]
+        var monthAndStartDayHu = dateRange[0].Split(" ");
+        var startDate = DateTime.Parse($"{DateTime.Now.Year}. {monthAndStartDayHu[0]} {monthAndStartDayHu[1]}", CultureInfo.GetCultureInfo("hu"));
+        var endDate = DateTime.Parse($"{DateTime.Now.Year}. {monthAndStartDayHu[1]} {dateRange[1]}", CultureInfo.GetCultureInfo("hu"));
+
+        return Utils.GenerateHungarianFormattedDateRange(startDate, endDate);
     }
 }
