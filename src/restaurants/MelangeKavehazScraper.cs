@@ -41,7 +41,6 @@ public class MelangeKavehazScraper : Scraper
             Menu = coursesForEachDay,
             Name = Name,
             Elapsed = DateTime.Now.Subtract(startDate).TotalMilliseconds,
-            Successful = true
         });
     }
 }
