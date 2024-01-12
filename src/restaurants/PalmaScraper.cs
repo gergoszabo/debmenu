@@ -1,3 +1,4 @@
+using System.Globalization;
 using OpenQA.Selenium;
 
 public class PalmaScraper : Scraper
@@ -15,13 +16,15 @@ public class PalmaScraper : Scraper
 
         var menuListItems = element.FindElements(By.ClassName("menuList"));
 
-        Dictionary<string, List<string>> coursesForEachDay = [];
+        Dictionary<Tuple<DateTime, string>, List<string>> coursesForEachDay = [];
         foreach (var menuListItem in menuListItems)
         {
             var dateDay = menuListItem.FindElement(By.ClassName("Date__day")).Text;
+            // Január 15 HÉTFŐ
             var dateDate = menuListItem.FindElement(By.ClassName("Date__date")).Text;
+            var parsedDate = DateTime.Parse($"{DateTime.Now.Year}. {dateDate}", CultureInfo.GetCultureInfo("hu"));
             var menuList = menuListItem.FindElement(By.ClassName("menuList__menu")).Text;
-            coursesForEachDay.Add($"{dateDate} {dateDay}", menuList.Split("\n").ToList());
+            coursesForEachDay.Add(new Tuple<DateTime, string>(parsedDate, dateDay), menuList.Split("\n").ToList());
         }
 
         return Task.FromResult<IScrapeResult>(new SeleniumMenuScraperResult()

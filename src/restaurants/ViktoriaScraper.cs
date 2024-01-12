@@ -13,10 +13,10 @@ public class ViktoriaScraper : Scraper
         try
         {
             ArgumentNullException.ThrowIfNull(element);
-            Dictionary<string, List<string>> coursesForEachDay = [];
+            Dictionary<Tuple<DateTime, string>, List<string>> coursesForEachDay = [];
             var dates = GetDateRange(webDriver);
 
-            var currentDay = "";
+            Tuple<DateTime, string> currentDay = new Tuple<DateTime, string>(DateTime.Now, "");
             element.FindElements(By.TagName("div"))
                 .ToList()
                 .ForEach(div =>
@@ -24,7 +24,7 @@ public class ViktoriaScraper : Scraper
                     if (div.GetAttribute("class") == "")
                     {
                         var date = dates.FirstOrDefault();
-                        if (dates.Count > 0)
+                        if (date != null)
                         {
                             dates.RemoveAt(0);
                         }
@@ -33,7 +33,8 @@ public class ViktoriaScraper : Scraper
                             return;
                         }
                         // this is a day, key already exists in dict
-                        currentDay = string.Format("{0} {1}", date, div.Text.ToLower()).Trim();
+                        // 2024.01.15. hétfő
+                        currentDay = new Tuple<DateTime, string>(DateTime.Parse(date), div.Text);
                         coursesForEachDay.Add(currentDay, []);
                     }
                     else if (div.GetAttribute("class") == "featured-title")

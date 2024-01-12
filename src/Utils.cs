@@ -27,12 +27,13 @@ public class Utils
         "december"
      ];
 
-    public static List<string> GenerateHungarianFormattedDateRange(DateTime startDate, DateTime endDate)
+    public static List<DateTime> GenerateHungarianFormattedDateRange(DateTime startDate, DateTime endDate)
     {
-        List<string> dates = [];
+        List<DateTime> dates = [];
         for (int i = 0; i < 5; i++)
         {
-            dates.Add(startDate.AddDays(i).ToString("yyyy. MMMM dd.", CultureInfo.GetCultureInfo("hu")));
+            // dates.Add(startDate.AddDays(i).ToString("yyyy. MMMM dd.", CultureInfo.GetCultureInfo("hu")));
+            dates.Add(startDate.AddDays(i));
         }
         return dates;
     }

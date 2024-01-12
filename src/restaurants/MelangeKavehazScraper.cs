@@ -26,14 +26,14 @@ public class MelangeKavehazScraper : Scraper
 
         var dates = Utils.GenerateHungarianFormattedDateRange(startDate, endDate);
 
-        Dictionary<string, List<string>> coursesForEachDay = [];
+        Dictionary<Tuple<DateTime, string>, List<string>> coursesForEachDay = [];
         foreach (var dailyOffer in dailyOffers)
         {
             var lines = dailyOffer.Text.Split("\n");
             var dateForLine = dates.FirstOrDefault();
             dates.RemoveAt(0);
 
-            coursesForEachDay.Add($"{dateForLine:yyyy.MM.dd} {lines[0]}", lines.Skip(1).ToList());
+            coursesForEachDay.Add(new Tuple<DateTime, string>(dateForLine, lines[0]), lines.Skip(1).ToList());
         }
 
         return Task.FromResult<IScrapeResult>(new SeleniumMenuScraperResult()
