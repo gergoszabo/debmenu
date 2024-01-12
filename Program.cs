@@ -11,11 +11,12 @@ if (Directory.Exists(directory))
 Directory.CreateDirectory(directory);
 
 Scraper[] scrapers = [
-    new HuseScraper(),
-    new ViktoriaScraper(),
-    new MannaScraper(),
     new CampusScraper(),
-    new GovindaScraper()
+    new GovindaScraper(),
+    new HuseScraper(),
+    new MannaScraper(),
+    new MelangeKavehazScraper(),
+    new ViktoriaScraper(),
 ];
 
 var results = scrapers.Select(scraper => scraper.Scrape().GetAwaiter().GetResult()).ToArray();
