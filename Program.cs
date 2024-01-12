@@ -16,6 +16,7 @@ Scraper[] scrapers = [
     new HuseScraper(),
     new MannaScraper(),
     new MelangeKavehazScraper(),
+    new PalmaScraper(),
     new ViktoriaScraper(),
 ];
 
