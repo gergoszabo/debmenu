@@ -13,7 +13,7 @@ public class HuseScraper : Scraper
 
     public override By? Selector => By.ClassName("napimenu");
 
-    private bool detectText => Environment.GetCommandLineArgs().Contains("--detect-text");
+    private bool skipDetectText => Environment.GetCommandLineArgs().Contains("--skip-detect-text");
 
     protected async override Task<IScrapeResult> ScrapeInternal(IWebDriver webDriver, IWebElement? element)
     {
@@ -29,8 +29,8 @@ public class HuseScraper : Scraper
 
             File.WriteAllBytes("results/huse.png", cleanedUpImageBytes);
 
-            Console.WriteLine("DetectText: " + detectText.ToString());
-            if (detectText)
+            Console.WriteLine("DetectText: " + skipDetectText.ToString());
+            if (!skipDetectText)
             {
                 return DetectTextOnImage(cleanedUpImageBytes);
             }
@@ -91,8 +91,8 @@ public class HuseScraper : Scraper
     {
         var dates = parseDatesFromDateRangeLine(detectTextResponse.TextDetections[1].DetectedText);
 
-        Dictionary<string, List<string>> coursesForEachDay = [];
-        string currentDay = "";
+        Dictionary<Tuple<DateTime, string>, List<string>> coursesForEachDay = [];
+        Tuple<DateTime, string> currentDay = new Tuple<DateTime, string>(DateTime.Now, "");
         // 0: Heti menü
         // 1: DateRange
         // 2: 2000 Ft
@@ -105,7 +105,8 @@ public class HuseScraper : Scraper
 
             if (Utils.DAYS_LOWER_HU.Any(d => d == lowerText))
             {
-                currentDay = $"{dates[dateIndex++]} {td.DetectedText}";
+                // currentDay = $"{dates[dateIndex++]} {td.DetectedText}";
+                currentDay = new Tuple<DateTime, string>(dates[dateIndex++], td.DetectedText);
                 coursesForEachDay.Add(currentDay, new());
             }
             else if (td.DetectedText.ToLower() == "***")
@@ -126,7 +127,7 @@ public class HuseScraper : Scraper
         };
     }
 
-    private static List<string> parseDatesFromDateRangeLine(string dateRangeLine)
+    private static List<DateTime> parseDatesFromDateRangeLine(string dateRangeLine)
     {
         // JANUÁR 8. ÉS 12. KÖZÖTT
         var dateRange = dateRangeLine.ToLower()

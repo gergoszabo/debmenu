@@ -8,10 +8,12 @@ With this little application, no need to try open many sites in a hurry, the dai
 
 ## Which restaurants are checked?
 
-- Campus
+- Campus (https://campusettermek.hu)
 - Govinda (https://www.govindadebrecen.hu)
 - Hüse (http://www.husevendeglo.hu)
-- Manna ()
+- Manna (https://www.mannaetterem.hu)
+- Melange Kávéház (https://melangekavehaz.hu)
+- Pálma Étterem (https://www.palmaetterem.hu/)
 - Viktória (https://www.viktoriaetterem.hu)
 
 ## What it does?
@@ -28,6 +30,7 @@ Each restaurant has a page which can be crawled in two ways:
 - Custom html: the restaurant has its own page, not using some catering solution
     - Selenium opens the restaurant url
     - with selectors, the daily offer gets extracted - either text or image
+        - image might be transformed to text with AWS Rekognition service
     - HTML page gets generate with the restaurant's shortened name
 - Catering solution: the restaurant uses some catering solution, it (probably) has an API
     - Grab the JSON from the API
@@ -43,9 +46,11 @@ Results of each scan will be emailed to the maintainer.
 - .NET 8.0 - C#
 - Selenium
 - AWS SDK
+    - S3 to store and serve generated assets
+    - Rekognition to extract text from image
 - MailKit
 - Magick.NET
-    - enhance images if needed
+    - (optionally) enhance image for text extraction
 
 ## Licence
 

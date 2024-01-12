@@ -1,3 +1,3 @@
 public class SeleniumMenuScraperResult: BaseScraperResult {
-    public required Dictionary<string, List<string>> Menu { get; set; }
+    public required Dictionary<Tuple<DateTime, string>, List<string>> Menu { get; set; }
 }

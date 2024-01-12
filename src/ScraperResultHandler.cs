@@ -113,7 +113,7 @@ public static class ScraperResultHandler
             result.Menu.Select(day =>
             {
                 return $"""
-                <h3>{day.Key}</h3>
+                <h3>{day.Key.Item1:yyyy.MM.dd} {day.Key.Item2}</h3>
                 {string.Join("", day.Value.Select(course => $"<div>{course}</div>"))}
                 """;
             }));

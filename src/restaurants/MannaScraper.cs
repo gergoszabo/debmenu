@@ -23,10 +23,22 @@ public class MannaScraper : Scraper
 
             var hetiMenu = resp?.FirstOrDefault(p => p.name == "Heti menü") ?? new MannaResponseCategory { name = "", products = [] };
 
-            Dictionary<string, List<string>> menu = new();
+            Dictionary<Tuple<DateTime, string>, List<string>> menu = new();
             foreach (var product in hetiMenu.products)
             {
-                menu.Add(product.name, [product.description]);
+                // Hétfő (01.15.) A menü
+                var split = product.name.Split(" ");
+                var monthAndDay = split[1][1..].Replace(")", "");
+                var date = DateTime.Parse($"{DateTime.Now.Year}.{monthAndDay}");
+                var key = new Tuple<DateTime, string>(date, split[0]);
+                if (menu.ContainsKey(key))
+                {
+                    menu[key].AddRange([string.Join(" ", split[2..]), product.description]);
+                }
+                else
+                {
+                    menu.Add(key, [string.Join(" ", split[2..]), product.description]);
+                }
             }
 
             return new SeleniumMenuScraperResult
