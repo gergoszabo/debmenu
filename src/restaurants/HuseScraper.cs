@@ -139,7 +139,7 @@ public class HuseScraper : Scraper
         // ["január 8.", "12."]
         var monthAndStartDayHu = dateRange[0].Split(" ");
         var startDate = DateTime.Parse($"{DateTime.Now.Year}. {monthAndStartDayHu[0]} {monthAndStartDayHu[1]}", CultureInfo.GetCultureInfo("hu"));
-        var endDate = DateTime.Parse($"{DateTime.Now.Year}. {monthAndStartDayHu[1]} {dateRange[1]}", CultureInfo.GetCultureInfo("hu"));
+        var endDate = DateTime.Parse($"{DateTime.Now.Year}. {monthAndStartDayHu[0]} {dateRange[1]}", CultureInfo.GetCultureInfo("hu"));
 
         return Utils.GenerateHungarianFormattedDateRange(startDate, endDate);
     }
