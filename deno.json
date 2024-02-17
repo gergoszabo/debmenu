@@ -1,0 +1,18 @@
+{
+    "fmt": {
+        "useTabs": false,
+        "lineWidth": 140,
+        "indentWidth": 4,
+        "semiColons": true,
+        "singleQuote": true,
+        "include": [
+            "src/*.js",
+            "generate.js"
+        ],
+        "exclude": [
+            "cache/",
+            "result/",
+            "index.ts"
+        ]
+    }
+}

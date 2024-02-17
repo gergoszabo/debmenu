@@ -1,1 +1,0 @@
-@reboot /bin/sh "/<absolute-path>/endless.sh"

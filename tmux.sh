@@ -1,1 +1,0 @@
-tmux new -d -s debmenu -n debmenu && tmux send-keys -t debmenu:debmenu "/bin/sh ./endless.sh" Enter
