@@ -28,7 +28,7 @@ export const fetchHuse = async () => {
         // magick huse.cache.png -evaluate Add 10% huse.magicked.png
         const adjustedImageFileName = `${RESULT_FOLDER}/${shortName}.magick.png`;
         spawnSync('convert', [
-        // const proc = spawnSync('magick', [
+            // const proc = spawnSync('magick', [
             `${CACHE_FOLDER}/${shortName}.cache.png`,
             '-evaluate',
             'Add',
@@ -37,7 +37,7 @@ export const fetchHuse = async () => {
         ], {
             encoding: 'utf8',
             stdio: 'inherit',
-            cwd: process.cwd()
+            cwd: process.cwd(),
         });
 
         // call aws detectText on the adjusted image

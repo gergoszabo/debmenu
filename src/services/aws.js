@@ -1,9 +1,20 @@
 import clientReckognition from '@aws-sdk/client-rekognition';
 import clientS3 from '@aws-sdk/client-s3';
-import { fromIni } from '@aws-sdk/credential-providers';
+import { fromIni, fromEnv } from '@aws-sdk/credential-providers';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 const { DetectTextCommand, RekognitionClient } = clientReckognition;
 const { S3Client, PutObjectCommand } = clientS3;
+
+const getCredentials = () => {
+    try {
+        const credentials = fromIni();
+        return credentials;
+    } catch (e) {
+        console.error(e);
+    }
+    // let throw, no credentials provided
+    return fromEnv();
+}
 
 export const detectText = async (fileName) => {
     if (!existsSync(fileName)) {
@@ -19,7 +30,7 @@ export const detectText = async (fileName) => {
 
     const client = new RekognitionClient({
         region: 'eu-central-1',
-        credentials: fromIni(),
+        credentials: getCredentials(),
     });
 
     const input = {
@@ -40,7 +51,7 @@ export const uploadResult = async () => {
     const files = ['result/index.html'];
 
     const client = new S3Client({
-        credentials: fromIni(),
+        credentials: getCredentials(),
         region: 'eu-central-2',
     });
 
