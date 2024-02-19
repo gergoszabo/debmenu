@@ -48,6 +48,11 @@ export const detectText = async (fileName) => {
 };
 
 export const uploadResult = async () => {
+    if (process.argv.includes('--skip-upload')) {
+        console.log('Skipping upload to S3 bucket');
+        return;
+    };
+
     const files = ['result/index.html'];
 
     const client = new S3Client({
