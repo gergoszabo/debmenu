@@ -2,7 +2,9 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } 
 
 export const RESULT_FOLDER = 'result';
 export const CACHE_FOLDER = 'cache';
-const CACHE_INTERVAL = 3 * 60 * 60 * 1000; // 3 hour
+const CACHE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
+
+const noCache = process.argv.includes('--no-cache');
 
 export function createCacheFolder() {
     return createFolder(CACHE_FOLDER);
@@ -22,6 +24,7 @@ export async function cacheOrFetch(filename, fetchUrl, type) {
     const cacheFileName = `${CACHE_FOLDER}/${filename}.cache.${type}`;
     let result;
     if (
+        !noCache &&
         existsSync(cacheFileName) &&
         statSync(cacheFileName).mtimeMs > (Date.now() - CACHE_INTERVAL)
     ) {

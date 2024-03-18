@@ -47,6 +47,9 @@ export const fetchHuse = async () => {
                 [{ DetectedText: '' }, { DetectedText: '' }])[1].DetectedText || '',
         );
 
+        console.log(response?.TextDetections[1]);
+        console.log(dates);
+
         const offers = [];
         let selectedDate = '';
         let dateIndex = 0;
@@ -64,7 +67,11 @@ export const fetchHuse = async () => {
             const text = td.DetectedText?.toLowerCase() || '';
 
             if (DAYS.includes(text)) {
-                selectedDate = dates[dateIndex++]
+                const date = dates[dateIndex++];
+                if (!date) {
+                    break;
+                }
+                selectedDate = date
                     .toISOString()
                     .substring(0, 10)
                     .replaceAll('-', '.');

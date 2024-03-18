@@ -1,14 +1,15 @@
 import clientReckognition from '@aws-sdk/client-rekognition';
 import clientS3 from '@aws-sdk/client-s3';
 import { fromIni, fromEnv } from '@aws-sdk/credential-providers';
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 const { DetectTextCommand, RekognitionClient } = clientReckognition;
 const { S3Client, PutObjectCommand } = clientS3;
 
+const CACHE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
+
 const getCredentials = () => {
     try {
-        const credentials = fromIni();
-        return credentials;
+        return fromIni();
     } catch (e) {
         console.error(e);
     }
@@ -22,7 +23,9 @@ export const detectText = async (fileName) => {
     }
 
     const cacheFileName = fileName.split('.')[0] + '.aws.response.json';
-    if (existsSync(cacheFileName)) {
+
+    if (existsSync(cacheFileName) &&
+        statSync(cacheFileName).mtimeMs > (Date.now() - CACHE_INTERVAL)) {
         return JSON.parse(readFileSync(cacheFileName));
     }
 

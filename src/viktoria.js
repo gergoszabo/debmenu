@@ -106,6 +106,7 @@ function getDateRangeFromHtml(html) {
     const [start, end] = $p[0]['data']
         .replaceAll('..', '')
         .replaceAll('.', '')
+        .replaceAll('\u00a0', ' ')
         .split('-')
         .map((s) => s.trim().split(' '));
 
