@@ -8,12 +8,9 @@ With this little application, no need to try open many sites in a hurry, the dai
 
 ## Which restaurants are checked?
 
-- Campus (https://campusettermek.hu)
 - Govinda (https://www.govindadebrecen.hu)
 - Hüse (http://www.husevendeglo.hu)
 - Manna (https://www.mannaetterem.hu)
-- Melange Kávéház (https://melangekavehaz.hu)
-- Pálma Étterem (https://www.palmaetterem.hu/)
 - Viktória (https://www.viktoriaetterem.hu)
 
 ## What it does?
@@ -28,29 +25,37 @@ With this little application, no need to try open many sites in a hurry, the dai
 
 Each restaurant has a page which can be crawled in two ways:
 - Custom html: the restaurant has its own page, not using some catering solution
-    - Selenium opens the restaurant url
+    - Fetch the page source
     - with selectors, the daily offer gets extracted - either text or image
-        - image might be transformed to text with AWS Rekognition service
-    - HTML page gets generate with the restaurant's shortened name
+        - image will be transformed to text with AWS Rekognition service
+    - JSON gets generated with the restaurant's shortened name
 - Catering solution: the restaurant uses some catering solution, it (probably) has an API
     - Grab the JSON from the API
     - Parse it
-    - Generate html page with the restaurant's shortened name
+    - Generate JSON with the restaurant's shortened name
 
-Once all restaurants are crawled and the HTML pages are available in `results` folder,
-AWS SDK will upload it to a public S3 bucket, website hosting is enabled on that bucket.
+Once all restaurants are crawled and the JSON results are available in `results` folder,
+the `index.html` will be generated and it will be uploaded to a public S3 bucket with AWS SDK, website hosting is enabled on that bucket.
 Results of each scan will be emailed to the maintainer.
 
 ## Used technologies
 
-- .NET 8.0 - C#
-- Selenium
+- Node.js
 - AWS SDK
     - S3 to store and serve generated assets
     - Rekognition to extract text from image
-- MailKit
-- Magick.NET
+- ImageMagick
     - (optionally) enhance image for text extraction
+
+### Install dependencies
+#### Linux
+- NVM: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+- Node: nvm i 20
+- sudo apt install imagemagick
+- Hack together ~/.aws/config file or use ENV variables
+
+#### Mac
+Same as linux, but use brew to install imagemagick
 
 ## Licence
 

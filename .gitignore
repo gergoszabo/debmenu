@@ -1,7 +1,6 @@
-*.png
-bin
-obj
-.vscode
-results
 .DS_Store
-env_variables.prod.sh
+node_modules
+cache
+result
+dist
+run.sh
