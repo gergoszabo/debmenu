@@ -47,6 +47,16 @@ Results of each scan will be emailed to the maintainer.
 - ImageMagick
     - (optionally) enhance image for text extraction
 
+### Install dependencies
+#### Linux
+- NVM: curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+- Node: nvm i 20
+- sudo apt install imagemagick
+- Hack together ~/.aws/config file or use ENV variables
+
+#### Mac
+Same as linux, but use brew to install imagemagick
+
 ## Licence
 
 GOTO [LICENSE](./LICENSE)
