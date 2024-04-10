@@ -56,7 +56,10 @@ export const uploadResult = async () => {
         return;
     };
 
-    const files = ['result/index.html'];
+    const files = [
+        { key: 'index.html', file: 'result/index.html' },
+        { 'key': 'tomorrow.html', file: 'result/tomorrow.html' }
+    ];
 
     const client = new S3Client({
         credentials: getCredentials(),
@@ -64,12 +67,12 @@ export const uploadResult = async () => {
     });
 
     for (const file of files) {
-        console.log(`PUT ${file}`);
+        console.log(`PUT ${file.key} - ${file.file}`);
         const putObjectRequest = {
-            Key: 'index.html',
+            Key: file.key,
             Bucket: 'debmenuaws',
             ContentType: 'text/html',
-            Body: readFileSync(file, { encoding: null })
+            Body: readFileSync(file.file, { encoding: null })
         };
 
         const putObjectCommand = new PutObjectCommand(putObjectRequest);
