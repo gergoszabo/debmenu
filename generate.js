@@ -4,7 +4,7 @@ import { fetchViktoria } from './src/viktoria.js';
 import { fetchHuse } from './src/huse.js';
 import { createCacheFolder, createResultFolder, RESULT_FOLDER } from './src/_cache.js';
 import { fetchGovinda } from './src/govinda.js';
-import { toHtml } from './src/_template.js';
+import { toHtml, TODAY, TOMORROW } from './src/_template.js';
 import { uploadResult } from './src/services/aws.js';
 
 createCacheFolder();
@@ -29,6 +29,7 @@ for (let index = 0; index < fetchFunctions.length; index++) {
     );
 }
 
-writeFileSync(`${RESULT_FOLDER}/index.html`, toHtml(results));
+writeFileSync(`${RESULT_FOLDER}/index.html`, toHtml(results, TODAY));
+writeFileSync(`${RESULT_FOLDER}/tomorrow.html`, toHtml(results, TOMORROW));
 
 await uploadResult();
