@@ -31,9 +31,10 @@ export const toHtml = (results, date) =>
 <body>
 ${date} - ${date === TODAY ? tomorrowLink : todayLink}<br>
 ${resultsToHtml(results, date)}
-Generated at ${new Date(
-        Date.now() + 3600000,
-    ).toISOString().replaceAll('T', ' ').replaceAll('Z', '')
+Generated at ${
+        new Date(
+            Date.now() + 3600000,
+        ).toISOString().replaceAll('T', ' ').replaceAll('Z', '')
     }
 <br>
 ${githubCornerSVG}
