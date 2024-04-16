@@ -58,6 +58,8 @@ export const fetchHuse = async () => {
         // 2: 2000 Ft
         // 3: days
 
+        let superMenuLinesProcessed = 0;
+        const superMenuLines = [];
         for (
             let index = 0;
             index < (response?.TextDetections?.length || 0);
@@ -66,7 +68,17 @@ export const fetchHuse = async () => {
             const td = (response.TextDetections || [])[index];
             const text = td.DetectedText?.toLowerCase() || '';
 
-            if (DAYS.includes(text)) {
+            if (superMenuLinesProcessed) {
+                // supermenu takes two line, needs to be added to every day
+                superMenuLines.push(text);
+                if (superMenuLinesProcessed > 1) {
+                    offers.forEach((offer) => {
+                        offer.offers.push(superMenuLines.join(' '));
+                    });
+                    break;
+                }
+                superMenuLinesProcessed++;
+            } else if (DAYS.includes(text)) {
                 const date = dates[dateIndex++];
                 if (!date) {
                     break;
@@ -82,7 +94,7 @@ export const fetchHuse = async () => {
                     offers: [],
                 });
             } else if (text === '***') {
-                break;
+                superMenuLinesProcessed = 1;
             } else {
                 const offer = offers.find((o) => o.date === selectedDate);
                 if (offer?.offers?.length) {
