@@ -1,8 +1,10 @@
 import * as cheerio from 'cheerio';
+import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import imageSize from '@coderosh/image-size';
 import { CACHE_FOLDER, cacheOrFetch, RESULT_FOLDER } from './_cache.js';
 import { getDateRange } from './_date.js';
 import { detectText } from './services/aws.js';
-import { spawnSync } from 'node:child_process';
 
 const fetchUrl = 'https://forestetterem.hu/';
 const website = 'https://forestetterem.hu';
@@ -40,7 +42,7 @@ export const fetchForest = async () => {
             cwd: process.cwd(),
         });
 
-        const cropFileNames = createCropImages();
+        const cropFileNames = await createCropImages();
 
         const weekFileName = cropFileNames.shift();
 
@@ -52,7 +54,7 @@ export const fetchForest = async () => {
         const dates = parseDatesFromDateRangeLine(week);
 
         let dateIndex = 0;
-        const threshold = 0.05;
+        const threshold = 0.035;
         for (const filename of cropFileNames) {
             console.log(`Processing ${filename}`);
             const response = await detectText(filename);
@@ -66,7 +68,7 @@ export const fetchForest = async () => {
                 if (
                     (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop < threshold
                 ) {
-                    offersForTheDay[offersForTheDay.length - 1] += line?.DetectedText.toLowerCase();
+                    offersForTheDay[offersForTheDay.length - 1] += ' ' + line?.DetectedText.toLowerCase();
                 } else {
                     offersForTheDay.push((line?.DetectedText || '').toLowerCase());
                 }
@@ -138,19 +140,15 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
     return getDateRange(startDate, endDate);
 }
 
-function createCropImages() {
-    // 800x573
-    const cropWidth = 147;
-    const cropStartHeight = 66;
-    const cropHeight = 410 - cropStartHeight;
-    const crops = [
-        [0, 0, 800, cropStartHeight],
-        [30, cropStartHeight, cropWidth, cropHeight - cropStartHeight / 2],
-        [30 + cropWidth, cropStartHeight, cropWidth, cropHeight - cropStartHeight / 2],
-        [30 + cropWidth * 2, cropStartHeight, cropWidth, cropHeight - cropStartHeight / 2],
-        [30 + cropWidth * 3, cropStartHeight, cropWidth, cropHeight],
-        [30 + cropWidth * 4, cropStartHeight, cropWidth, cropHeight],
-    ];
+async function createCropImages() {
+    const filename = readFileSync(`${RESULT_FOLDER}/${shortName}.magick.jpg`);
+    // used to be 800x573, current it is 2000x17000
+    const { width } = await imageSize(filename);
+    const cropWidth = (width - 2 * 30) / 5;
+    const cropStartHeight = 150;
+    const crops = [0, 1, 2, 3, 4].map(n => [30 + cropWidth * n + (50 - n * 20), cropStartHeight, cropWidth, 900]);
+    crops.unshift([0, 0, width, cropStartHeight]);
+
     const cropFileNames = [];
     for (let i = 0; i < 6; i++) {
         const { cropFileName, cmd } = getImageCropCommand(crops[i], i + 1);
