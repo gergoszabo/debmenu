@@ -142,11 +142,17 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
 
 async function createCropImages() {
     const filename = readFileSync(`${RESULT_FOLDER}/${shortName}.magick.jpg`);
-    // used to be 800x573, current it is 2000x17000
-    const { width } = await imageSize(filename);
-    const cropWidth = (width - 2 * 30) / 5;
-    const cropStartHeight = 150;
-    const crops = [0, 1, 2, 3, 4].map(n => [30 + cropWidth * n + (50 - n * 20), cropStartHeight, cropWidth, 900]);
+    // used to be 800x573, current it is 2000x1700
+    // now it is 900x765 :)
+    // lets try relative values instead of hardcoded values
+    // the values were correct on 2000x1700 so lets adjust based on that
+    const { width, height } = await imageSize(filename);
+    const edgeWidth = 30 / 1700 * height;
+    const cropWidth = (width - 2 * edgeWidth) / 5;
+    const cropStartHeight = 150 / 1700 * height;
+    const cropHeight = 900 / 1700 * height;
+    const generateAdjustment = (step) => (50 / 2000 * width - step * 20 / 2000 * width);
+    const crops = [0, 1, 2, 3, 4].map((n) => [edgeWidth + cropWidth * n + generateAdjustment(n), cropStartHeight, cropWidth, cropHeight]);
     crops.unshift([0, 0, width, cropStartHeight]);
 
     const cropFileNames = [];
