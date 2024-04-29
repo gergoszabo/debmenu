@@ -50,6 +50,7 @@ export const fetchForest = async () => {
         const weekStrLine = weekDetectResponse?.TextDetections.find((td) => td.Type === 'LINE');
         console.log(weekStrLine?.DetectedText);
         // НЕТІ MENÜ ÁPRILIS 15 - 19.
+        // HETI MENÜ ÁPRILIS 28 - MÁJUS 3.
         const week = weekStrLine.DetectedText.split(' ').slice(2).filter((s) => !!s).join(' ');
         const dates = parseDatesFromDateRangeLine(week);
 
@@ -128,14 +129,16 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
         .split(' ')
         .filter((s) => !!s);
     // ['április', '15', '19']
+    // ['április', '28', 'május', '3']
 
-    const startDate = new Date().getFullYear().toString() + '-' +
+    const year = new Date().getFullYear().toString();
+    const startDate = year +
         MONTH_DICT[x[0]] + '-' +
         x[1];
 
-    const endDate = new Date().getFullYear().toString() + '-' +
-        MONTH_DICT[x[0]] + '-' +
-        x[2];
+    const endDate = (x.length === 3) ?
+        `${year}-${MONTH_DICT[x[0]]}-${x[2]}` :
+        `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
 
     return getDateRange(startDate, endDate);
 }
