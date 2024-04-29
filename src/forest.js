@@ -132,13 +132,8 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
     // ['április', '28', 'május', '3']
 
     const year = new Date().getFullYear().toString();
-    const startDate = year +
-        MONTH_DICT[x[0]] + '-' +
-        x[1];
-
-    const endDate = (x.length === 3) ?
-        `${year}-${MONTH_DICT[x[0]]}-${x[2]}` :
-        `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
+    const startDate = `${year}-${MONTH_DICT[x[0]]}-${x[1]}`;
+    const endDate = (x.length === 3) ? `${year}-${MONTH_DICT[x[0]]}-${x[2]}` : `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
 
     return getDateRange(startDate, endDate);
 }
