@@ -78,7 +78,7 @@ export const fetchHuse = async () => {
                     break;
                 }
                 superMenuLinesProcessed++;
-            } else  if (DAYS.includes(text)) {
+            } else if (DAYS.includes(text)) {
                 const date = dates[dateIndex++];
                 if (!date) {
                     break;
