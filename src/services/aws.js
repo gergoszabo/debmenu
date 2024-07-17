@@ -1,6 +1,7 @@
 import clientReckognition from '@aws-sdk/client-rekognition';
 import clientS3 from '@aws-sdk/client-s3';
-import { fromIni, fromEnv } from '@aws-sdk/credential-providers';
+// import { fromIni, fromEnv } from '@aws-sdk/credential-providers';
+import { fromEnv } from '@aws-sdk/credential-providers';
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 const { DetectTextCommand, RekognitionClient } = clientReckognition;
 const { S3Client, PutObjectCommand } = clientS3;
@@ -9,13 +10,13 @@ const CACHE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
 
 const getCredentials = () => {
     try {
-        return fromIni();
+        // return fromIni();
     } catch (e) {
         console.error(e);
     }
     // let throw, no credentials provided
     return fromEnv();
-}
+};
 
 export const detectText = async (fileName) => {
     if (!existsSync(fileName)) {
@@ -24,8 +25,10 @@ export const detectText = async (fileName) => {
 
     const cacheFileName = fileName.split('.')[0] + '.aws.response.json';
 
-    if (existsSync(cacheFileName) &&
-        statSync(cacheFileName).mtimeMs > (Date.now() - CACHE_INTERVAL)) {
+    if (
+        existsSync(cacheFileName) &&
+        statSync(cacheFileName).mtimeMs > (Date.now() - CACHE_INTERVAL)
+    ) {
         return JSON.parse(readFileSync(cacheFileName));
     }
 
@@ -54,11 +57,11 @@ export const uploadResult = async () => {
     if (process.argv.includes('--skip-upload')) {
         console.log('Skipping upload to S3 bucket');
         return;
-    };
+    }
 
     const files = [
         { key: 'index.html', file: 'result/index.html' },
-        { 'key': 'tomorrow.html', file: 'result/tomorrow.html' }
+        { 'key': 'tomorrow.html', file: 'result/tomorrow.html' },
     ];
 
     const client = new S3Client({
@@ -72,11 +75,11 @@ export const uploadResult = async () => {
             Key: file.key,
             Bucket: 'debmenuaws',
             ContentType: 'text/html',
-            Body: readFileSync(file.file, { encoding: null })
+            Body: readFileSync(file.file, { encoding: null }),
         };
 
         const putObjectCommand = new PutObjectCommand(putObjectRequest);
         const response = await client.send(putObjectCommand);
         console.log(response);
     }
-}
+};

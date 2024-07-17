@@ -7,7 +7,9 @@
     "scripts": {
         "fresh": "npm run clean && npm run start",
         "clean": "rm -rf cache result dist",
-        "start": "node generate.js"
+        "start": "node generate.js",
+        "format": "deno fmt src/**/*.js",
+        "lint": "deno lint"
     },
     "keywords": [],
     "author": "",

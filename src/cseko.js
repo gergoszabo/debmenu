@@ -6,41 +6,23 @@ import { CACHE_FOLDER, cacheOrFetch, RESULT_FOLDER } from './_cache.js';
 import { getDateRange } from './_date.js';
 import { detectText } from './services/aws.js';
 
-const fetchUrl = 'https://forestetterem.hu/';
-const website = 'https://forestetterem.hu';
-const shortName = 'forest';
-const name = 'Forest étterem';
+const fetchUrl = 'https://debrecen.csekokavehaz.hu/cms/heti-menu-debrecen/';
+const website = 'https://debrecen.csekokavehaz.hu/';
+const shortName = 'cseko';
+const name = 'Csekő kávéház';
 
-const startedAt = performance.now();
-export const fetchForest = async () => {
+export const fetchCseko = async () => {
+    const startedAt = performance.now();
     try {
         // fetch page or load it from cache
         const html = await cacheOrFetch(shortName, fetchUrl, 'html');
 
         // parse out image src
         const $ = cheerio.load(html);
-        const imgSrc = $('.et_pb_lightbox_image').attr('href');
+        const imgSrc = $('img[srcset]').last().attr('srcset').split(',').find((src) => src.includes('2048w')).trim().split(' ')[0];
 
         // fetch and cache the image
         await cacheOrFetch(shortName, imgSrc, 'jpg');
-
-        const offers = [];
-        // adjust huse image to make the background image and text disappear
-
-        // brew install imagemagick
-        // magick huse.cache.png -evaluate Add 10% huse.magicked.png
-        const adjustedImageFileName = `${RESULT_FOLDER}/${shortName}.magick.jpg`;
-        spawnSync('convert', [
-            `${CACHE_FOLDER}/${shortName}.cache.jpg`,
-            '-evaluate',
-            'Add',
-            '-20%',
-            adjustedImageFileName,
-        ], {
-            encoding: 'utf8',
-            stdio: 'inherit',
-            cwd: process.cwd(),
-        });
 
         const cropFileNames = await createCropImages();
 
@@ -49,13 +31,12 @@ export const fetchForest = async () => {
         const weekDetectResponse = await detectText(weekFileName);
         const weekStrLine = weekDetectResponse?.TextDetections.find((td) => td.Type === 'LINE');
         console.log(weekStrLine?.DetectedText);
-        // НЕТІ MENÜ ÁPRILIS 15 - 19.
-        // HETI MENÜ ÁPRILIS 28 - MÁJUS 3.
-        const week = weekStrLine.DetectedText.split(' ').slice(2).filter((s) => !!s).join(' ');
-        const dates = parseDatesFromDateRangeLine(week);
+        // HETI MENÜ ÁPRILIS 29 - MÁJUS 3.
+        const dates = parseDatesFromDateRangeLine(weekStrLine.DetectedText);
 
+        const offers = [];
         let dateIndex = 0;
-        const threshold = 0.035;
+        const threshold = 0.1;
         for (const filename of cropFileNames) {
             console.log(`Processing ${filename}`);
             const response = await detectText(filename);
@@ -66,9 +47,14 @@ export const fetchForest = async () => {
 
             for (let index = 1; index < lines.length; index++) {
                 const line = lines[index];
-                if (
-                    (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop < threshold
-                ) {
+                console.log(
+                    line?.Geometry?.BoundingBox?.Top,
+                    previousBoxTop,
+                    line?.Geometry?.BoundingBox?.Top - previousBoxTop,
+                    threshold,
+                    (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop < threshold,
+                );
+                if ((line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop < threshold) {
                     offersForTheDay[offersForTheDay.length - 1] += ' ' + line?.DetectedText.toLowerCase();
                 } else {
                     offersForTheDay.push((line?.DetectedText || '').toLowerCase());
@@ -86,10 +72,10 @@ export const fetchForest = async () => {
         return {
             shortName,
             fetchedIn: performance.now() - startedAt,
-            fetchUrl,
-            website,
             name,
+            fetchUrl,
             offers,
+            website,
         };
     } catch (e) {
         return {
@@ -120,38 +106,37 @@ const MONTH_DICT = {
 };
 
 function parseDatesFromDateRangeLine(dateRangeLine) {
-    // ÁPRILIS 15 - 19.
+    // 2024. ÁPRILIS 29. - MÁJUS 03.
+    console.log(dateRangeLine);
     const x = dateRangeLine
         .toLowerCase()
         .trim()
         .replaceAll('.', '')
-        .replaceAll('-', ' ')
+        .replaceAll('-', '')
         .split(' ')
         .filter((s) => !!s);
-    // ['április', '15', '19']
-    // ['április', '28', 'május', '3']
+    // ['2024', 'április', '29', 'május', '03']
+    console.log(x);
 
-    const year = new Date().getFullYear().toString();
-    const startDate = `${year}-${MONTH_DICT[x[0]]}-${x[1]}`;
-    const endDate = (x.length === 3) ? `${year}-${MONTH_DICT[x[0]]}-${x[2]}` : `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
+    // const year = new Date().getFullYear().toString();
+    const startDate = `${x[0]}-${MONTH_DICT[x[1]]}-${x[2]}`;
+    const endDate = (x.length === 5) ? `${x[0]}-${MONTH_DICT[x[3]]}-${x[4]}` : `${x[0]}-${MONTH_DICT[x[2]]}-${x[3]}`;
 
     return getDateRange(startDate, endDate);
 }
 
 async function createCropImages() {
-    const filename = readFileSync(`${RESULT_FOLDER}/${shortName}.magick.jpg`);
-    // used to be 800x573, current it is 2000x1700
-    // now it is 900x765 :)
-    // lets try relative values instead of hardcoded values
-    // the values were correct on 2000x1700 so lets adjust based on that
-    const { width, height } = await imageSize(filename);
-    const edgeWidth = 30 / 1700 * height;
-    const cropWidth = (width - 2 * edgeWidth) / 5;
-    const cropStartHeight = 150 / 1700 * height;
-    const cropHeight = 900 / 1700 * height;
-    const generateAdjustment = (step) => (50 / 2000 * width - step * 20 / 2000 * width);
-    const crops = [0, 1, 2, 3, 4].map((n) => [edgeWidth + cropWidth * n + generateAdjustment(n), cropStartHeight, cropWidth, cropHeight]);
-    crops.unshift([0, 0, width, cropStartHeight]);
+    const filename = readFileSync(`${CACHE_FOLDER}/${shortName}.cache.jpg`);
+    // 2048x1365
+    const { width } = await imageSize(filename);
+    const edgeWidth = 150;
+    const cropWidth = (width - 3 * edgeWidth) / 5;
+    const cropStartHeight = 300;
+    const cropHeight = 750;
+    const generateAdjustment = (step) => cropWidth * step + step * 5 + (step > 3 ? (step - 3) * 15 : 0);
+    const crops = [0, 1, 2, 3, 4].map((n) => [edgeWidth + generateAdjustment(n), cropStartHeight, cropWidth, cropHeight]);
+    // week header
+    crops.unshift([270, 125, 500, 50]);
 
     const cropFileNames = [];
     for (let i = 0; i < 6; i++) {
@@ -167,7 +152,7 @@ function getImageCropCommand(bounds, index) {
     const cropParams = `${bounds[2]}x${bounds[3]}+${bounds[0]}+${bounds[1]}!`;
 
     return {
-        cmd: `convert ${RESULT_FOLDER}/${shortName}.magick.jpg -crop ${cropParams} ${cropFileName}`
+        cmd: `convert ${CACHE_FOLDER}/${shortName}.cache.jpg -crop ${cropParams} ${cropFileName}`
             .split(' '),
         cropFileName,
     };
