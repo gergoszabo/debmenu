@@ -47,7 +47,8 @@ export const fetchGovinda = async () => {
             }
 
             const dateLine = lines[0].DetectedText || '';
-            const split = dateLine.split(' ').map((s) => s.replace('.', ''));
+            const split = dateLine.replaceAll('.', ' ').split(' ').filter((s) => !!s);
+            console.log(dateLine, split);
             const date = new Date(
                 Date.parse(`${new Date().getFullYear()}-${split[0]}-${split[1]}T00:00:00.000Z`),
             )

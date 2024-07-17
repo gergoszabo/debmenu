@@ -5,18 +5,20 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-      "fresh": "npm run clean && npm run start",
-      "clean": "rm -rf cache result dist",
-      "start": "node generate.js"
+        "fresh": "npm run clean && npm run start",
+        "clean": "rm -rf cache result dist",
+        "start": "node generate.js",
+        "format": "deno fmt src/**/*.js",
+        "lint": "deno lint"
     },
     "keywords": [],
     "author": "",
     "license": "ISC",
     "dependencies": {
-      "@aws-sdk/client-rekognition": "^3.535.0",
-      "@aws-sdk/client-s3": "^3.537.0",
-      "@aws-sdk/credential-providers": "^3.535.0",
-      "cheerio": "^1.0.0-rc.12"
+        "@aws-sdk/client-rekognition": "^3.535.0",
+        "@aws-sdk/client-s3": "^3.537.0",
+        "@aws-sdk/credential-providers": "^3.535.0",
+        "@coderosh/image-size": "^2.0.1",
+        "cheerio": "^1.0.0-rc.12"
     }
-  }
-  
+}

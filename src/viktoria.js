@@ -62,6 +62,7 @@ export const fetchViktoria = async () => {
                     const zsmenu = day?.offers.pop();
                     strs.unshift(zsmenu);
                     day?.offers.push(strs.join('<br>'));
+                    // day?.offers.push(...strs);
                 }
             }
         }

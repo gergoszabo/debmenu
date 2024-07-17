@@ -93,8 +93,9 @@ export const fetchHuse = async () => {
                     day: text,
                     offers: [],
                 });
-            } else if (text === '***') {
+            } else if (text === '***' || text.toLowerCase() === 'húsleves, rántott szelet sült burgonyával és') {
                 superMenuLinesProcessed = 1;
+                if (text !== '***') index--;
             } else {
                 const offer = offers.find((o) => o.date === selectedDate);
                 if (offer?.offers?.length) {
