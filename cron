@@ -1,0 +1,5 @@
+1 5 * * * sh ${PWD}/run.sh 
+1 7 * * * sh ${PWD}/run.sh
+31 8 * * * sh ${PWD}/run.sh
+11 10 * * * sh ${PWD}/run.sh
+15 14 * * * sh ${PWD}/run.sh
