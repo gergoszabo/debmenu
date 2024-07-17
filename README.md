@@ -8,6 +8,8 @@ With this little application, no need to try open many sites in a hurry, the dai
 
 ## Which restaurants are checked?
 
+- Csekő (https://debrecen.csekokavehaz.hu) (disabled at the moment)
+- Forest (https://forestetterem.hu)
 - Govinda (https://www.govindadebrecen.hu)
 - Hüse (http://www.husevendeglo.hu)
 - Manna (https://www.mannaetterem.hu)
