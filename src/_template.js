@@ -1,5 +1,11 @@
-export const TODAY = new Date(Date.now() + 3600000).toISOString().substring(0, 10).replaceAll('-', '.');
-export const TOMORROW = new Date(Date.now() + 3600000 + 86400000).toISOString().substring(0, 10).replaceAll('-', '.');
+export const TODAY = new Date(Date.now() + 3600000 * 2)
+    .toISOString()
+    .substring(0, 10)
+    .replaceAll('-', '.');
+export const TOMORROW = new Date(Date.now() + 3600000 * 2 + 86400000)
+    .toISOString()
+    .substring(0, 10)
+    .replaceAll('-', '.');
 
 const tomorrowLink = `<a href="tomorrow.html">Tomorrow ${TOMORROW}</a>`;
 const todayLink = `<a href="index.html">Today ${TODAY}</a>`;
@@ -20,24 +26,73 @@ export const toHtml = (results, date) =>
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta http-equiv="Cache-Control" content="max-age=3600">
+    <meta http-equiv="Cache-Control" content="max-age=300">
     <title>DebMenu</title>
     <style>
         ul, li {
             margin: 5px;
         }
+        :root {
+          color-scheme: light dark;
+        }
+        body, li, a:not(.github-corner) {
+          color: light-dark(black, white);
+          background-color: light-dark(white, black);
+        }
     </style>
+    <script>
+        var COLOR_SCHEME_COOKIE_NAME = 'colorScheme';
+        function saveColorSchemeInCookie(colorScheme) {
+            document.cookie = COLOR_SCHEME_COOKIE_NAME+'='+colorScheme+'; max-age=31536000; path=/';
+        }
+        function readColorSchemeFromCookie() {
+            try {
+                const cookies = document.cookie.split(';');
+                const colorSchemeCookie = cookies.find(c => c.includes(COLOR_SCHEME_COOKIE_NAME));
+                if(!colorSchemeCookie) {
+                    return 'light';
+                }
+                let cookieValue = colorSchemeCookie.split('=')[1];
+                if(!['dark','light'].includes(cookieValue)){
+                    cookieValue = 'light';
+                }
+                return cookieValue;
+            } catch(e) {
+                console.error(e);
+                return 'light';
+            }
+        }
+        function toggleDarkLight() {
+            const colorScheme = document.body.style.colorScheme === 'light' ? 'dark': 'light';
+            saveColorSchemeInCookie(colorScheme);
+            document.body.style.colorScheme = colorScheme;
+        }
+    </script>
 </head>
 <body>
 ${date} - ${date === TODAY ? tomorrowLink : todayLink}<br>
 ${resultsToHtml(results, date)}
-Generated at ${
-        new Date(
-            Date.now() + 3600000,
-        ).toISOString().replaceAll('T', ' ').replaceAll('Z', '')
-    }
+Generated at ${new Date(Date.now() + 3600000)
+        .toISOString()
+        .replaceAll('T', ' ')
+        .replaceAll('Z', '')}
+<br>
+<br>
+<button onclick="toggleDarkLight()">Dark/Light mode!</button>
 <br>
 ${githubCornerSVG}
+<script>
+    (() => {
+        let themeFromCookie = readColorSchemeFromCookie();
+        if(!['dark','light'].includes(themeFromCookie)){
+            themeFromCookie = '';
+        }
+
+        const colorScheme = themeFromCookie || 'light';
+        document.body.style.colorScheme = colorScheme;
+        saveColorSchemeInCookie(colorScheme);
+    })();
+</script>
 </body>
 </html>`;
 
@@ -46,13 +101,15 @@ const resultsToHtml = (results, date) => {
         .map((result) => {
             let html = `<li><a href="${result.website}">${result.name}</a><ul>`;
 
-            result.offers
-                .forEach((o) => {
-                    if (o.date === date) {
-                        html += o.offers.map((offer) => `<li>${offer}</li>`).join('\n');
-                    }
-                });
+            result.offers.forEach((o) => {
+                if (o.date === date) {
+                    html += o.offers
+                        .map((offer) => `<li>${offer}</li>`)
+                        .join('\n');
+                }
+            });
 
             return html + '</ul></li>';
-        }).join('\n');
+        })
+        .join('\n');
 };
