@@ -30,28 +30,37 @@ export const fetchForest = async () => {
         // brew install imagemagick
         // magick huse.cache.png -evaluate Add 10% huse.magicked.png
         const adjustedImageFileName = `${RESULT_FOLDER}/${shortName}.magick.jpg`;
-        spawnSync('convert', [
-            `${CACHE_FOLDER}/${shortName}.cache.jpg`,
-            '-evaluate',
-            'Add',
-            '-20%',
-            adjustedImageFileName,
-        ], {
-            encoding: 'utf8',
-            stdio: 'inherit',
-            cwd: process.cwd(),
-        });
+        spawnSync(
+            'convert',
+            [
+                `${CACHE_FOLDER}/${shortName}.cache.jpg`,
+                '-evaluate',
+                'Add',
+                '-20%',
+                adjustedImageFileName,
+            ],
+            {
+                encoding: 'utf8',
+                stdio: 'inherit',
+                cwd: process.cwd(),
+            }
+        );
 
         const cropFileNames = await createCropImages();
 
         const weekFileName = cropFileNames.shift();
 
         const weekDetectResponse = await detectText(weekFileName);
-        const weekStrLine = weekDetectResponse?.TextDetections.find((td) => td.Type === 'LINE');
+        const weekStrLine = weekDetectResponse?.TextDetections.find(
+            (td) => td.Type === 'LINE'
+        );
         console.log(weekStrLine?.DetectedText);
         // НЕТІ MENÜ ÁPRILIS 15 - 19.
         // HETI MENÜ ÁPRILIS 28 - MÁJUS 3.
-        const week = weekStrLine.DetectedText.split(' ').slice(2).filter((s) => !!s).join(' ');
+        const week = weekStrLine.DetectedText.split(' ')
+            .slice(2)
+            .filter((s) => !!s)
+            .join(' ');
         const dates = parseDatesFromDateRangeLine(week);
 
         let dateIndex = 0;
@@ -62,24 +71,41 @@ export const fetchForest = async () => {
 
             let previousBoxTop = -1;
             const offersForTheDay = [];
-            const lines = (response.TextDetections || [])?.filter((td) => td.Type === 'LINE');
+            const lines = (response.TextDetections || [])?.filter(
+                (td) => td.Type === 'LINE'
+            );
+
+            // skip days when venue is closed
+            if (lines.some((l) => l.DetectedText === 'ZÁRVA')) {
+                continue;
+            }
 
             for (let index = 1; index < lines.length; index++) {
                 const line = lines[index];
                 if (
-                    (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop < threshold
+                    (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop <
+                    threshold
                 ) {
-                    offersForTheDay[offersForTheDay.length - 1] += ' ' + line?.DetectedText.toLowerCase();
+                    offersForTheDay[offersForTheDay.length - 1] +=
+                        ' ' + line?.DetectedText.toLowerCase();
                 } else {
-                    offersForTheDay.push((line?.DetectedText || '').toLowerCase());
+                    offersForTheDay.push(
+                        (line?.DetectedText || '').toLowerCase()
+                    );
                 }
-                previousBoxTop = line.Geometry?.BoundingBox?.Top || previousBoxTop;
+                previousBoxTop =
+                    line.Geometry?.BoundingBox?.Top || previousBoxTop;
             }
 
             offers.push({
-                date: dates[dateIndex++].toISOString().substring(0, 10).replaceAll('-', '.'),
+                date: dates[dateIndex++]
+                    .toISOString()
+                    .substring(0, 10)
+                    .replaceAll('-', '.'),
                 day: 'text',
-                offers: offersForTheDay.filter((o) => o !== 'levesek' && o !== 'föételek'),
+                offers: offersForTheDay.filter(
+                    (o) => o !== 'levesek' && o !== 'föételek'
+                ),
             });
         }
 
@@ -105,18 +131,18 @@ export const fetchForest = async () => {
 };
 
 const MONTH_DICT = {
-    'január': '01',
-    'február': '02',
-    'március': '03',
-    'április': '04',
-    'május': '05',
-    'június': '06',
-    'július': '07',
-    'augusztus': '08',
-    'szeptember': '09',
-    'október': '10',
-    'november': '11',
-    'december': '12',
+    január: '01',
+    február: '02',
+    március: '03',
+    április: '04',
+    május: '05',
+    június: '06',
+    július: '07',
+    augusztus: '08',
+    szeptember: '09',
+    október: '10',
+    november: '11',
+    december: '12',
 };
 
 function parseDatesFromDateRangeLine(dateRangeLine) {
@@ -133,7 +159,10 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
 
     const year = new Date().getFullYear().toString();
     const startDate = `${year}-${MONTH_DICT[x[0]]}-${x[1]}`;
-    const endDate = (x.length === 3) ? `${year}-${MONTH_DICT[x[0]]}-${x[2]}` : `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
+    const endDate =
+        x.length === 3
+            ? `${year}-${MONTH_DICT[x[0]]}-${x[2]}`
+            : `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
 
     return getDateRange(startDate, endDate);
 }
@@ -145,12 +174,18 @@ async function createCropImages() {
     // lets try relative values instead of hardcoded values
     // the values were correct on 2000x1700 so lets adjust based on that
     const { width, height } = await imageSize(filename);
-    const edgeWidth = 30 / 1700 * height;
+    const edgeWidth = (30 / 1700) * height;
     const cropWidth = (width - 2 * edgeWidth) / 5;
-    const cropStartHeight = 150 / 1700 * height;
-    const cropHeight = 900 / 1700 * height;
-    const generateAdjustment = (step) => (50 / 2000 * width - step * 20 / 2000 * width);
-    const crops = [0, 1, 2, 3, 4].map((n) => [edgeWidth + cropWidth * n + generateAdjustment(n), cropStartHeight, cropWidth, cropHeight]);
+    const cropStartHeight = (150 / 1700) * height;
+    const cropHeight = (900 / 1700) * height;
+    const generateAdjustment = (step) =>
+        (50 / 2000) * width - ((step * 20) / 2000) * width;
+    const crops = [0, 1, 2, 3, 4].map((n) => [
+        edgeWidth + cropWidth * n + generateAdjustment(n),
+        cropStartHeight,
+        cropWidth,
+        cropHeight,
+    ]);
     crops.unshift([0, 0, width, cropStartHeight]);
 
     const cropFileNames = [];
@@ -167,8 +202,9 @@ function getImageCropCommand(bounds, index) {
     const cropParams = `${bounds[2]}x${bounds[3]}+${bounds[0]}+${bounds[1]}!`;
 
     return {
-        cmd: `convert ${RESULT_FOLDER}/${shortName}.magick.jpg -crop ${cropParams} ${cropFileName}`
-            .split(' '),
+        cmd: `convert ${RESULT_FOLDER}/${shortName}.magick.jpg -crop ${cropParams} ${cropFileName}`.split(
+            ' '
+        ),
         cropFileName,
     };
 }
