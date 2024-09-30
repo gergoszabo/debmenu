@@ -132,15 +132,23 @@ export const fetchForest = async () => {
 
 const MONTH_DICT = {
     január: '01',
+    januar: '01',
     február: '02',
+    februar: '02',
     március: '03',
+    marcius: '03',
     április: '04',
+    aprilis: '04',
     május: '05',
+    majus: '05',
     június: '06',
+    junius: '06',
     július: '07',
+    julius: '07',
     augusztus: '08',
     szeptember: '09',
     október: '10',
+    oktober: '10',
     november: '11',
     december: '12',
 };

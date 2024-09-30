@@ -27,24 +27,30 @@ export const fetchHuse = async () => {
         // brew install imagemagick
         // magick huse.cache.png -evaluate Add 10% huse.magicked.png
         const adjustedImageFileName = `${RESULT_FOLDER}/${shortName}.magick.png`;
-        spawnSync('convert', [
-            // const proc = spawnSync('magick', [
-            `${CACHE_FOLDER}/${shortName}.cache.png`,
-            '-evaluate',
-            'Add',
-            '10%',
-            adjustedImageFileName,
-        ], {
-            encoding: 'utf8',
-            stdio: 'inherit',
-            cwd: process.cwd(),
-        });
+        spawnSync(
+            'convert',
+            [
+                // const proc = spawnSync('magick', [
+                `${CACHE_FOLDER}/${shortName}.cache.png`,
+                '-evaluate',
+                'Add',
+                '10%',
+                adjustedImageFileName,
+            ],
+            {
+                encoding: 'utf8',
+                stdio: 'inherit',
+                cwd: process.cwd(),
+            }
+        );
 
         // call aws detectText on the adjusted image
         const response = await detectText(adjustedImageFileName);
         const dates = parseDatesFromDateRangeLine(
-            (response?.TextDetections ||
-                [{ DetectedText: '' }, { DetectedText: '' }])[1].DetectedText || '',
+            (response?.TextDetections || [
+                { DetectedText: '' },
+                { DetectedText: '' },
+            ])[1].DetectedText || ''
         );
 
         console.log(response?.TextDetections[1]);
@@ -93,7 +99,11 @@ export const fetchHuse = async () => {
                     day: text,
                     offers: [],
                 });
-            } else if (text === '***' || text.toLowerCase() === 'húsleves, rántott szelet sült burgonyával és') {
+            } else if (
+                text === '***' ||
+                text.toLowerCase() ===
+                    'húsleves, rántott szelet sült burgonyával és'
+            ) {
                 superMenuLinesProcessed = 1;
                 if (text !== '***') index--;
             } else {
@@ -130,33 +140,49 @@ export const fetchHuse = async () => {
 const DAYS = ['hétfö', 'kedd', 'szerda', 'csütörtök', 'péntek'];
 
 const MONTH_DICT = {
-    'január': '01',
-    'február': '02',
-    'március': '03',
-    'április': '04',
-    'május': '05',
-    'június': '06',
-    'július': '07',
-    'augusztus': '08',
-    'szeptember': '09',
-    'október': '10',
-    'november': '11',
-    'december': '12',
+    január: '01',
+    januar: '01',
+    február: '02',
+    februar: '02',
+    március: '03',
+    marcius: '03',
+    április: '04',
+    aprilis: '04',
+    május: '05',
+    majus: '05',
+    június: '06',
+    junius: '06',
+    július: '07',
+    julius: '07',
+    augusztus: '08',
+    szeptember: '09',
+    október: '10',
+    oktober: '10',
+    november: '11',
+    december: '12',
 };
 
 function parseDatesFromDateRangeLine(dateRangeLine) {
+    const splitExpression = dateRangeLine.includes('és') ? 'és' : '-';
+
     let dateRange = dateRangeLine
         .toLowerCase()
         .replace('között', '')
         .trim()
-        .split('és')
-        .map((str) =>
-            new Date().getFullYear().toString() + '.' +
-            str.split(' ')
-                .map((s) => Object.keys(MONTH_DICT).includes(s) ? MONTH_DICT[s] : s)
-                .filter((s) => s)
-                .join('.')
-                .replaceAll('..', '.')
+        .split(splitExpression)
+        .map(
+            (str) =>
+                new Date().getFullYear().toString() +
+                '.' +
+                str
+                    .split(' ')
+                    .map((s) => s.trim())
+                    .map((s) =>
+                        Object.keys(MONTH_DICT).includes(s) ? MONTH_DICT[s] : s
+                    )
+                    .filter((s) => s)
+                    .join('.')
+                    .replaceAll('..', '.')
         )
         .map((s) => s.substring(0, s.length - 1));
 
@@ -165,7 +191,8 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
     if (dateRange[1].split('').filter((c) => c === '.').length === 1) {
         // middle of month, second part does not contain the month
         const lastIndexOfDot = dateRange[0].lastIndexOf('.');
-        const str = dateRange[0].substring(0, lastIndexOfDot) +
+        const str =
+            dateRange[0].substring(0, lastIndexOfDot) +
             dateRange[1].substring(dateRange[1].indexOf('.'));
         dateRange[1] = str;
     }
