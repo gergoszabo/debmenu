@@ -163,7 +163,9 @@ const MONTH_DICT = {
 };
 
 function parseDatesFromDateRangeLine(dateRangeLine) {
-    const splitExpression = dateRangeLine.includes('és') ? 'és' : '-';
+    const splitExpression = dateRangeLine.toLowerCase().includes('és')
+        ? 'és'
+        : '-';
 
     let dateRange = dateRangeLine
         .toLowerCase()
