@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
-cache
-result
-dist
 run.sh
+.aws/*
+!.aws/.gitkeep
+inventory.secret.yaml
+debmenu.js
+debmenu.tar

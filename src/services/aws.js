@@ -1,21 +1,15 @@
 import clientReckognition from '@aws-sdk/client-rekognition';
 import clientS3 from '@aws-sdk/client-s3';
-// import { fromIni, fromEnv } from '@aws-sdk/credential-providers';
-import { fromEnv } from '@aws-sdk/credential-providers';
+import { fromIni } from '@aws-sdk/credential-providers';
 import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import process from 'node:process';
 const { DetectTextCommand, RekognitionClient } = clientReckognition;
 const { S3Client, PutObjectCommand } = clientS3;
 
 const CACHE_INTERVAL = 1 * 60 * 60 * 1000; // 1 hour
 
 const getCredentials = () => {
-    try {
-        // return fromIni();
-    } catch (e) {
-        console.error(e);
-    }
-    // let throw, no credentials provided
-    return fromEnv();
+    return fromIni();
 };
 
 export const detectText = async (fileName) => {
@@ -27,7 +21,7 @@ export const detectText = async (fileName) => {
 
     if (
         existsSync(cacheFileName) &&
-        statSync(cacheFileName).mtimeMs > (Date.now() - CACHE_INTERVAL)
+        statSync(cacheFileName).mtimeMs > Date.now() - CACHE_INTERVAL
     ) {
         return JSON.parse(readFileSync(cacheFileName));
     }
@@ -61,7 +55,7 @@ export const uploadResult = async () => {
 
     const files = [
         { key: 'index.html', file: 'result/index.html' },
-        { 'key': 'tomorrow.html', file: 'result/tomorrow.html' },
+        { key: 'tomorrow.html', file: 'result/tomorrow.html' },
     ];
 
     const client = new S3Client({
