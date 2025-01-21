@@ -1,7 +1,8 @@
 import * as cheerio from 'cheerio';
-import { spawnSync } from 'node:child_process';
+import { log } from './_log.js';
 import { CACHE_FOLDER, cacheOrFetch, RESULT_FOLDER } from './_cache.js';
 import { detectText } from './services/aws.js';
+import { exec } from './_exec.js';
 
 const fetchUrl = 'https://www.govindadebrecen.hu/';
 const website = 'https://www.govindadebrecen.hu/';
@@ -32,25 +33,37 @@ export const fetchGovinda = async () => {
 
             let previousBoxTop = -1;
             const offersForTheDay = [];
-            const lines = (response.TextDetections || [])?.filter((td) => td.Type === 'LINE');
+            const lines = (response.TextDetections || [])?.filter(
+                (td) => td.Type === 'LINE'
+            );
 
             for (let index = 1; index < lines.length; index++) {
                 const line = lines[index];
                 if (
-                    (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop < threshold
+                    (line?.Geometry?.BoundingBox?.Top || 0) - previousBoxTop <
+                    threshold
                 ) {
-                    offersForTheDay[offersForTheDay.length - 1] += line?.DetectedText;
+                    offersForTheDay[offersForTheDay.length - 1] +=
+                        line?.DetectedText;
                 } else {
                     offersForTheDay.push(line?.DetectedText || '');
                 }
-                previousBoxTop = line.Geometry?.BoundingBox?.Top || previousBoxTop;
+                previousBoxTop =
+                    line.Geometry?.BoundingBox?.Top || previousBoxTop;
             }
 
             const dateLine = lines[0].DetectedText || '';
-            const split = dateLine.replaceAll('.', ' ').split(' ').filter((s) => !!s);
+            const split = dateLine
+                .replaceAll('.', ' ')
+                .split(' ')
+                .filter((s) => !!s);
             console.log(dateLine, split);
             const date = new Date(
-                Date.parse(`${new Date().getFullYear()}-${split[0]}-${split[1]}T00:00:00.000Z`),
+                Date.parse(
+                    `${new Date().getFullYear()}-${split[0]}-${
+                        split[1]
+                    }T00:00:00.000Z`
+                )
             )
                 .toISOString()
                 .substring(0, 10)
@@ -94,14 +107,12 @@ function createCropImages() {
     const cropFileNames = [];
     for (let i = 0; i < 5; i++) {
         crops[i + 1] = [crops[i][0] + crops[i][2], 0, diff, originalHeight];
-        const { cropFileName, cmd } = getImageCropCommand([
-            crops[i][0] + crops[i][2],
-            0,
-            diff,
-            originalHeight,
-        ], i + 1);
+        const { cropFileName, cmd } = getImageCropCommand(
+            [crops[i][0] + crops[i][2], 0, diff, originalHeight],
+            i + 1
+        );
         cropFileNames.push(cropFileName);
-        spawnSync(cmd[0], cmd.slice(1));
+        exec(cmd[0], cmd.slice(1));
         // Bun.spawnSync({ cmd });
     }
     return cropFileNames;
@@ -112,8 +123,9 @@ function getImageCropCommand(bounds, index) {
     const cropParams = `${bounds[2]}x${bounds[3]}+${bounds[0]}+${bounds[1]}!`;
 
     return {
-        cmd: `convert ${CACHE_FOLDER}/${shortName}.cache.png -crop ${cropParams} ${cropFileName}`
-            .split(' '),
+        cmd: `convert ${CACHE_FOLDER}/${shortName}.cache.png -crop ${cropParams} ${cropFileName}`.split(
+            ' '
+        ),
         // cmd: `magick ${CACHE_FOLDER}/${shortName}.cache.png -crop ${cropParams} ${cropFileName}`
         //     .split(' '),
         cropFileName,

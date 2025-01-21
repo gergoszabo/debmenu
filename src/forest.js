@@ -1,10 +1,11 @@
 import * as cheerio from 'cheerio';
-import { spawnSync } from 'node:child_process';
+import { log } from './_log.js';
 import { readFileSync } from 'node:fs';
 import imageSize from '@coderosh/image-size';
 import { CACHE_FOLDER, cacheOrFetch, RESULT_FOLDER } from './_cache.js';
 import { getDateRange } from './_date.js';
 import { detectText } from './services/aws.js';
+import { exec } from './_exec.js';
 
 const fetchUrl = 'https://forestetterem.hu/';
 const website = 'https://forestetterem.hu';
@@ -30,21 +31,28 @@ export const fetchForest = async () => {
         // brew install imagemagick
         // magick huse.cache.png -evaluate Add 10% huse.magicked.png
         const adjustedImageFileName = `${RESULT_FOLDER}/${shortName}.magick.jpg`;
-        spawnSync(
-            'convert',
-            [
-                `${CACHE_FOLDER}/${shortName}.cache.jpg`,
-                '-evaluate',
-                'Add',
-                '-20%',
-                adjustedImageFileName,
-            ],
-            {
-                encoding: 'utf8',
-                stdio: 'inherit',
-                cwd: process.cwd(),
-            }
-        );
+        exec('convert', [
+            `${CACHE_FOLDER}/${shortName}.cache.jpg`,
+            '-evaluate',
+            'Add',
+            '-20%',
+            adjustedImageFileName,
+        ]);
+        // spawnSync(
+        //     'convert',
+        //     [
+        //         `${CACHE_FOLDER}/${shortName}.cache.jpg`,
+        //         '-evaluate',
+        //         'Add',
+        //         '-20%',
+        //         adjustedImageFileName,
+        //     ],
+        //     {
+        //         encoding: 'utf8',
+        //         stdio: 'inherit',
+        //         cwd: process.cwd(),
+        //     }
+        // );
 
         const cropFileNames = await createCropImages();
 
@@ -154,6 +162,7 @@ const MONTH_DICT = {
 };
 
 function parseDatesFromDateRangeLine(dateRangeLine) {
+    log('parseDatesFromDateRangeLine()', dateRangeLine);
     // ÁPRILIS 15 - 19.
     const x = dateRangeLine
         .toLowerCase()
@@ -172,6 +181,7 @@ function parseDatesFromDateRangeLine(dateRangeLine) {
             ? `${year}-${MONTH_DICT[x[0]]}-${x[2]}`
             : `${year}-${MONTH_DICT[x[2]]}-${x[3]}`;
 
+    log('getDateRange()', startDate, endDate);
     return getDateRange(startDate, endDate);
 }
 
@@ -200,7 +210,9 @@ async function createCropImages() {
     for (let i = 0; i < 6; i++) {
         const { cropFileName, cmd } = getImageCropCommand(crops[i], i + 1);
         cropFileNames.push(cropFileName);
-        spawnSync(cmd[0], cmd.slice(1));
+        exec(cmd[0], cmd.slice(1));
+        // log('EXEC', cmd.join(' '));
+        // spawnSync(cmd[0], cmd.slice(1));
     }
     return cropFileNames;
 }
