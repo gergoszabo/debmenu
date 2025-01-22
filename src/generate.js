@@ -11,6 +11,8 @@ import { fetchGovinda } from './govinda.js';
 import { TODAY, toHtml, TOMORROW } from './_template.js';
 import { uploadResult } from './services/aws.js';
 import { fetchForest } from './forest.js';
+import { inspect } from 'node:util';
+import { log } from './_log.js';
 
 export async function generate() {
     createCacheFolder();
@@ -29,6 +31,7 @@ export async function generate() {
     for (let index = 0; index < fetchFunctions.length; index++) {
         const res = await fetchFunctions[index]();
         console.log(res);
+        log(inspect(res, false, null, true));
         results.push(res);
         writeFileSync(
             `${RESULT_FOLDER}/${res.shortName}.json`,

@@ -2,7 +2,7 @@ import * as cheerio from 'cheerio';
 import { CACHE_FOLDER, cacheOrFetch, RESULT_FOLDER } from './_cache.js';
 import { getDateRange } from './_date.js';
 import { detectText } from './services/aws.js';
-import { spawnSync } from 'node:child_process';
+import { exec } from './_exec.js';
 
 const fetchUrl = 'http://www.husevendeglo.hu';
 const website = 'http://www.husevendeglo.hu';
@@ -27,22 +27,14 @@ export const fetchHuse = async () => {
         // brew install imagemagick
         // magick huse.cache.png -evaluate Add 10% huse.magicked.png
         const adjustedImageFileName = `${RESULT_FOLDER}/${shortName}.magick.png`;
-        spawnSync(
-            'convert',
-            [
-                // const proc = spawnSync('magick', [
-                `${CACHE_FOLDER}/${shortName}.cache.png`,
-                '-evaluate',
-                'Add',
-                '10%',
-                adjustedImageFileName,
-            ],
-            {
-                encoding: 'utf8',
-                stdio: 'inherit',
-                cwd: process.cwd(),
-            }
-        );
+        exec('convert', [
+            // const proc = spawnSync('magick', [
+            `${CACHE_FOLDER}/${shortName}.cache.png`,
+            '-evaluate',
+            'Add',
+            '10%',
+            adjustedImageFileName,
+        ]);
 
         // call aws detectText on the adjusted image
         const response = await detectText(adjustedImageFileName);
