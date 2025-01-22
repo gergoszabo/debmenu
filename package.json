@@ -5,11 +5,11 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "fresh": "npm run clean && npm run start",
         "clean": "rm -rf cache result dist",
-        "start": "node generate.js",
-        "format": "deno fmt src/**/*.js",
-        "lint": "deno lint"
+        "start": "node src/server.js",
+        "compose": "docker image prune -a -f && npm run build && docker compose down && docker compose up --build",
+        "build": "esbuild src/server.js --bundle --platform=node --target=node22 --outfile=debmenu.js",
+        "deploy": "ansible-playbook -i inventory.yaml -i inventory.secret.yaml deploy.yaml -k"
     },
     "keywords": [],
     "author": "",
@@ -19,6 +19,10 @@
         "@aws-sdk/client-s3": "3.627.0",
         "@aws-sdk/credential-providers": "3.624.0",
         "@coderosh/image-size": "2.0.1",
-        "cheerio": "1.0.0"
+        "cheerio": "1.0.0",
+        "temporal-polyfill": "0.2.5"
+    },
+    "devDependencies": {
+        "esbuild": "0.24.2"
     }
 }

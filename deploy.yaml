@@ -1,0 +1,51 @@
+---
+- name: Save, transfer, extract, and load Docker image
+  hosts: local
+  gather_facts: no
+  tasks:
+      - name: Install dependencies
+        command: npm i
+
+      - name: Build application
+        command: npm run build
+
+      - name: Build Docker image
+        command: docker build --platform linux/amd64 -t debmenu-app:latest .
+
+      - name: Save Docker image to tar file
+        command: docker save -o ./debmenu-app.tar debmenu-app:latest
+
+      - name: Transfer tar file to remote machine
+        delegate_to: box
+        ansible.builtin.copy:
+            src: ./debmenu-app.tar
+            dest: /data/docker/debmenu/debmenu-app.tar
+            mode: '0644'
+            remote_src: no
+
+      - name: Transfer docker-compose file to remote machine
+        delegate_to: box
+        ansible.builtin.copy:
+            src: ./compose-server.yaml
+            dest: /data/docker/debmenu/compose.yaml
+            mode: '0644'
+            remote_src: no
+
+      - name: Cleanup local files
+        command: rm -rf node_modules ./debmenu-app.tar ./debmenu.js
+
+- name: Extract and load Docker image on remote machine
+  hosts: remote
+  gather_facts: no
+  remote_user: gary
+  tasks:
+      - name: Load Docker image from tar file
+        command: docker load -i /data/docker/debmenu/debmenu-app.tar
+
+      - name: Start Docker container
+        command: docker compose up --force-recreate -d
+        args:
+            chdir: /data/docker/debmenu
+
+      - name: Cleanup unused docker images
+        command: docker image prune -f -a
