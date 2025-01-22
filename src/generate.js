@@ -8,7 +8,7 @@ import {
     RESULT_FOLDER,
 } from './_cache.js';
 import { fetchGovinda } from './govinda.js';
-import { TODAY, toHtml, TOMORROW } from './_template.js';
+import { getToday, toHtml, getTomorrow } from './_template.js';
 import { uploadResult } from './services/aws.js';
 import { fetchForest } from './forest.js';
 import { inspect } from 'node:util';
@@ -39,8 +39,11 @@ export async function generate() {
         );
     }
 
-    writeFileSync(`${RESULT_FOLDER}/index.html`, toHtml(results, TODAY));
-    writeFileSync(`${RESULT_FOLDER}/tomorrow.html`, toHtml(results, TOMORROW));
+    writeFileSync(`${RESULT_FOLDER}/index.html`, toHtml(results, getToday()));
+    writeFileSync(
+        `${RESULT_FOLDER}/tomorrow.html`,
+        toHtml(results, getTomorrow())
+    );
 
     await uploadResult();
 }
