@@ -9,7 +9,7 @@
         "start": "node src/server.js",
         "compose": "docker image prune -a -f && npm run build && docker compose down && docker compose up --build",
         "build": "esbuild src/server.js --bundle --platform=node --target=node22 --outfile=debmenu.js",
-        "deploy": "ansible-playbook -i inventory.yaml -i inventory.secret.yaml deploy.yaml -k"
+        "deploy": "ansible-playbook -i inventory.yaml -i inventory.secret.yaml deploy.yaml"
     },
     "keywords": [],
     "author": "",

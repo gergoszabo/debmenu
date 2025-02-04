@@ -3,7 +3,7 @@ import { log } from './_log.js';
 import { generate } from './generate.js';
 
 log('Started');
-const whenToRun = ['06:01', '07:31', '11:01', '14:15'];
+const whenToRun = ['06:01', '07:31', '09:31', '11:01', '14:15'];
 log('When to run', whenToRun.join(', '));
 
 const shouldRunOnStart = process.argv.includes('--run-on-start');
@@ -17,7 +17,7 @@ let ranOnStart = false;
                 .substring(11, 16);
 
             const shouldRun = whenToRun.includes(now);
-            log(now, 'shouldRun:', shouldRun);
+            log(now, 'shouldRun:', shouldRun, whenToRun);
             if (shouldRun || (shouldRunOnStart && !ranOnStart)) {
                 ranOnStart = true;
                 log('Fetching');

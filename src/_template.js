@@ -9,9 +9,6 @@ export const getTomorrow = () =>
         .substring(0, 10)
         .replaceAll('-', '.');
 
-const tomorrowLink = `<a href="tomorrow.html">Tomorrow ${getTomorrow()}</a>`;
-const todayLink = `<a href="index.html">Today ${getToday()}</a>`;
-
 const githubCornerSVG = `
 <style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
 <a href="https://github.com/gergoszabo/debmenu" class="github-corner" aria-label="View source on GitHub">
@@ -22,8 +19,11 @@ const githubCornerSVG = `
     </svg>
 </a>`;
 
-export const toHtml = (results, date) =>
-    `<!DOCTYPE html>
+export const toHtml = (results, date) => {
+    const tomorrowLink = `<a href="tomorrow.html">Tomorrow ${getTomorrow()}</a>`;
+    const todayLink = `<a href="index.html">Today ${getToday()}</a>`;
+
+    return `<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="utf-8">
@@ -97,6 +97,7 @@ ${githubCornerSVG}
 </script>
 </body>
 </html>`;
+};
 
 const resultsToHtml = (results, date) => {
     return results
