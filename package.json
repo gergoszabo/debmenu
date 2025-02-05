@@ -15,9 +15,9 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
-        "@aws-sdk/client-rekognition": "3.624.0",
-        "@aws-sdk/client-s3": "3.627.0",
-        "@aws-sdk/credential-providers": "3.624.0",
+        "@aws-sdk/client-rekognition": "3.741.0",
+        "@aws-sdk/client-s3": "3.741.0",
+        "@aws-sdk/credential-providers": "3.742.0",
         "@coderosh/image-size": "2.0.1",
         "cheerio": "1.0.0",
         "temporal-polyfill": "0.2.5"
