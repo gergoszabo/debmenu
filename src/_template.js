@@ -1,14 +1,13 @@
-export const TODAY = new Date(Date.now() + 3600000 * 2)
-    .toISOString()
-    .substring(0, 10)
-    .replaceAll('-', '.');
-export const TOMORROW = new Date(Date.now() + 3600000 * 2 + 86400000)
-    .toISOString()
-    .substring(0, 10)
-    .replaceAll('-', '.');
-
-const tomorrowLink = `<a href="tomorrow.html">Tomorrow ${TOMORROW}</a>`;
-const todayLink = `<a href="index.html">Today ${TODAY}</a>`;
+export const getToday = () =>
+    new Date(Date.now() + 3600000 * 2)
+        .toISOString()
+        .substring(0, 10)
+        .replaceAll('-', '.');
+export const getTomorrow = () =>
+    new Date(Date.now() + 3600000 * 2 + 86400000)
+        .toISOString()
+        .substring(0, 10)
+        .replaceAll('-', '.');
 
 const githubCornerSVG = `
 <style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
@@ -20,8 +19,11 @@ const githubCornerSVG = `
     </svg>
 </a>`;
 
-export const toHtml = (results, date) =>
-    `<!DOCTYPE html>
+export const toHtml = (results, date) => {
+    const tomorrowLink = `<a href="tomorrow.html">Tomorrow ${getTomorrow()}</a>`;
+    const todayLink = `<a href="index.html">Today ${getToday()}</a>`;
+
+    return `<!DOCTYPE html>
 <html lang="hu">
 <head>
     <meta charset="utf-8">
@@ -70,7 +72,7 @@ export const toHtml = (results, date) =>
     </script>
 </head>
 <body>
-${date} - ${date === TODAY ? tomorrowLink : todayLink}<br>
+${date} - ${date === getToday() ? tomorrowLink : todayLink}<br>
 ${resultsToHtml(results, date)}
 Generated at ${new Date(Date.now() + 3600000)
         .toISOString()
@@ -95,6 +97,7 @@ ${githubCornerSVG}
 </script>
 </body>
 </html>`;
+};
 
 const resultsToHtml = (results, date) => {
     return results
