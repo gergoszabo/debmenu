@@ -1,9 +1,10 @@
 import 'temporal-polyfill/global';
 import { log } from './_log.js';
 import { generate } from './generate.js';
+import { getStats, clearStats } from './services/aws.js';
 
 log('Started');
-const whenToRun = ['06:01', '07:31', '09:31', '11:01', '14:15'];
+const whenToRun = ['06:01', '09:31', '11:01'];
 log('When to run', whenToRun.join(', '));
 
 const shouldRunOnStart = process.argv.includes('--run-on-start');
@@ -21,7 +22,12 @@ let ranOnStart = false;
             if (shouldRun || (shouldRunOnStart && !ranOnStart)) {
                 ranOnStart = true;
                 log('Fetching');
-                generate().catch(log);
+                generate()
+                    .then(() => {
+                        log(JSON.stringify(getStats()));
+                    })
+                    .catch(log)
+                    .finally(clearStats);
             }
 
             // tick every minute
