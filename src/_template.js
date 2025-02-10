@@ -9,9 +9,11 @@ export const getTomorrow = () =>
         .substring(0, 10)
         .replaceAll('-', '.');
 
+const GIT_REV = '';
+
 const githubCornerSVG = `
 <style>.github-corner:hover .octo-arm{animation:octocat-wave 560ms ease-in-out}@keyframes octocat-wave{0%,100%{transform:rotate(0)}20%,60%{transform:rotate(-25deg)}40%,80%{transform:rotate(10deg)}}@media (max-width:500px){.github-corner:hover .octo-arm{animation:none}.github-corner .octo-arm{animation:octocat-wave 560ms ease-in-out}}</style>
-<a href="https://github.com/gergoszabo/debmenu" class="github-corner" aria-label="View source on GitHub">
+<a href="https://github.com/gergoszabo/debmenu" target="_blank" class="github-corner" aria-label="View source on GitHub">
     <svg width="80" height="80" viewBox="0 0 250 250" style="fill:#151513; color:#fff; position: absolute; top: 0; border: 0; right: 0;" aria-hidden="true">
         <path d="M0,0 L115,115 L130,115 L142,142 L250,250 L250,0 Z"></path>
         <path d="M128.3,109.0 C113.8,99.7 119.0,89.6 119.0,89.6 C122.0,82.7 120.5,78.6 120.5,78.6 C119.2,72.0 123.4,76.3 123.4,76.3 C127.3,80.9 125.5,87.3 125.5,87.3 C122.9,97.6 130.6,101.9 134.4,103.2" fill="currentColor" style="transform-origin: 130px 106px;" class="octo-arm"></path>
@@ -80,6 +82,7 @@ Generated at ${new Date(Date.now() + 3600000)
         .replaceAll('Z', '')}
 <br>
 Runs every day at ${scheduledRuns.join(', ')}<br>
+Version <a target="_blank" href="https://github.com/gergoszabo/debmenu/commit/${GIT_REV}">${GIT_REV}</a><br>
 <br>
 <button onclick="toggleDarkLight()">Dark/Light mode!</button>
 <br>
