@@ -14,7 +14,7 @@ import { fetchForest } from './forest.js';
 import { inspect } from 'node:util';
 import { log } from './_log.js';
 
-export async function generate() {
+export async function generate(scheduledRuns) {
     createCacheFolder();
     createResultFolder();
 
@@ -39,10 +39,13 @@ export async function generate() {
         );
     }
 
-    writeFileSync(`${RESULT_FOLDER}/index.html`, toHtml(results, getToday()));
+    writeFileSync(
+        `${RESULT_FOLDER}/index.html`,
+        toHtml(results, getToday(), scheduledRuns)
+    );
     writeFileSync(
         `${RESULT_FOLDER}/tomorrow.html`,
-        toHtml(results, getTomorrow())
+        toHtml(results, getTomorrow(), scheduledRuns)
     );
 
     await uploadResult();

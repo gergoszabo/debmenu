@@ -19,7 +19,7 @@ const githubCornerSVG = `
     </svg>
 </a>`;
 
-export const toHtml = (results, date) => {
+export const toHtml = (results, date, scheduledRuns) => {
     const tomorrowLink = `<a href="tomorrow.html">Tomorrow ${getTomorrow()}</a>`;
     const todayLink = `<a href="index.html">Today ${getToday()}</a>`;
 
@@ -79,6 +79,7 @@ Generated at ${new Date(Date.now() + 3600000)
         .replaceAll('T', ' ')
         .replaceAll('Z', '')}
 <br>
+Runs every day at ${scheduledRuns.join(', ')}<br>
 <br>
 <button onclick="toggleDarkLight()">Dark/Light mode!</button>
 <br>
