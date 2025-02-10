@@ -22,7 +22,7 @@ let ranOnStart = false;
             if (shouldRun || (shouldRunOnStart && !ranOnStart)) {
                 ranOnStart = true;
                 log('Fetching');
-                generate()
+                generate(whenToRun)
                     .then(() => {
                         log(JSON.stringify(getStats()));
                     })
