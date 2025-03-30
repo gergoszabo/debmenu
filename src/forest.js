@@ -15,6 +15,10 @@ const name = 'Forest étterem';
 const startedAt = performance.now();
 export const fetchForest = async () => {
     try {
+        const today = new Date().toISOString().substring(0, 10);
+        const tomorrow = new Date(new Date().getTime() + 24 * 60 * 60 * 1000)
+            .toISOString()
+            .substring(0, 10);
         // fetch page or load it from cache
         const html = await cacheOrFetch(shortName, fetchUrl, 'html');
 
@@ -74,6 +78,16 @@ export const fetchForest = async () => {
         let dateIndex = 0;
         const threshold = 0.035;
         for (const filename of cropFileNames) {
+            const dateForFile =
+                (dateIndex < dates.length &&
+                    dates[dateIndex].toISOString().substring(0, 10)) ||
+                '';
+
+            if (![today, tomorrow].includes(dateForFile)) {
+                dateIndex++;
+                continue;
+            }
+
             console.log(`Processing ${filename}`);
             const response = await detectText(filename);
 
