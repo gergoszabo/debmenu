@@ -1,0 +1,16 @@
+[Unit]
+Description=Debmenu
+After=network.target
+
+[Service]
+Type=simple
+User={{ app_user }}
+WorkingDirectory={{ app_path }}
+ExecStart=/usr/bin/node {{ app_path }}/debmenu.js
+Restart=on-failure
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

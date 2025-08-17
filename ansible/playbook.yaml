@@ -1,0 +1,88 @@
+---
+- name: Configure Node.js environment and run service
+  hosts: lxc_debmenu
+  become: yes
+  vars:
+    nodejs_version: "22.x"
+    app_path: "/opt/debmenu_app"
+    app_user: "debmenuuser"
+
+  tasks:
+    - name: Create dedicated user and group for the application
+      ansible.builtin.user:
+        name: "{{ app_user }}"
+        state: present
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Install required packages (tzdata, imagemagick)
+      ansible.builtin.apt:
+        name:
+          - tzdata
+          - imagemagick
+        state: present
+        update_cache: yes
+      when: ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu'
+
+    - name: Add NodeSource PPA for Node.js {{ nodejs_version }}
+      ansible.builtin.shell: |
+        curl -fsSL https://deb.nodesource.com/setup_{{ nodejs_version }} | bash -
+      args:
+        creates: /etc/apt/sources.list.d/nodesource.list
+
+    - name: Install Node.js {{ nodejs_version }}
+      ansible.builtin.apt:
+        name: "nodejs"
+        state: present
+        update_cache: yes
+
+    - name: Set timezone to Europe/Budapest
+      community.general.timezone:
+        name: Europe/Budapest
+
+    - name: Ensure application directory exists
+      ansible.builtin.file:
+        path: "{{ app_path }}"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0755'
+
+    - name: Copy debmenu.js to the application directory
+      ansible.builtin.copy:
+        src: ../debmenu.js
+        dest: "{{ app_path }}/debmenu.js"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0644'
+
+    - name: Create .aws directory for credentials
+      ansible.builtin.file:
+        path: "~{{ app_user }}/.aws"
+        state: directory
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0700'
+        
+    - name: Copy AWS credentials file
+      ansible.builtin.copy:
+        src: "~/.aws/credentials"
+        dest: "~{{ app_user }}/.aws/credentials"
+        owner: "{{ app_user }}"
+        group: "{{ app_user }}"
+        mode: '0600'
+
+    - name: Create systemd service file for the Node.js application
+      ansible.builtin.template:
+        src: templates/debmenu.service.j2
+        dest: /etc/systemd/system/debmenu.service
+        owner: root
+        group: root
+        mode: '0644'
+
+    - name: Start and enable the debmenu service
+      ansible.builtin.systemd_service:
+        name: debmenu
+        state: started
+        enabled: yes
+        daemon_reload: yes
