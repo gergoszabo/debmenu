@@ -126,7 +126,7 @@ export const fetchForest = async () => {
                     .replaceAll('-', '.'),
                 day: 'text',
                 offers: offersForTheDay.filter(
-                    (o) => o !== 'levesek' && o !== 'föételek'
+                    (o) => o !== 'levesek' && o !== 'föételek' && o !== 'fitt ajánlat'
                 ),
             });
         }
@@ -209,7 +209,7 @@ async function createCropImages() {
     const edgeWidth = (30 / 1700) * height;
     const cropWidth = (width - 2 * edgeWidth) / 5;
     const cropStartHeight = (150 / 1700) * height;
-    const cropHeight = (900 / 1700) * height;
+    const cropHeight = (1050 / 1700) * height;
     const generateAdjustment = (step) =>
         (50 / 2000) * width - ((step * 20) / 2000) * width;
     const crops = [0, 1, 2, 3, 4].map((n) => [
