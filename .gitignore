@@ -6,3 +6,5 @@ run.sh
 inventory.secret.yaml
 debmenu.js
 debmenu.tar
+result
+cache
