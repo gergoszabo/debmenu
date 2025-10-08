@@ -8,3 +8,8 @@ debmenu.js
 debmenu.tar
 result
 cache
+.env
+gemini/*.html
+gemini/result.json
+gemini/staging
+gemini/results
