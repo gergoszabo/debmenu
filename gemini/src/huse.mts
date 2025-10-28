@@ -14,7 +14,7 @@ async function getImageLink() {
     const response = await prompt([
         {
             text:
-                'Extract the image links for below "HETI MENÜ" from this piece of html. Only return the links, nothing else.' +
+                'Extract the image links from the following html. There is div  with attribute data-elementor-type="popup". I need the one with 1080w in it. Only return the link, nothing else.' +
                 husehtml,
         },
     ]);
@@ -26,7 +26,7 @@ async function getImageLink() {
 export async function getHuseOffers() {
     const imageLink = await getImageLink();
 
-    const arrayBuf = await (await fetch(website + imageLink)).arrayBuffer();
+    const arrayBuf = await (await fetch(imageLink)).arrayBuffer();
     const base64ImageFile = Buffer.from(arrayBuf).toString('base64');
 
     const contents = [
