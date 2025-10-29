@@ -1,47 +1,17 @@
 import {
-    DATE_GROUNDING,
     prompt,
     RESPONSE_EXTRACT_TASK,
     RESPONSE_STRUCTURE,
 } from './google.mts';
 
-export const website = 'http://www.husevendeglo.hu';
-
-async function getImageLink() {
-    const husehtml = await (await fetch(website)).text();
-
-    console.log(`Extracting image link from html... ${husehtml.length} chars`);
-    const response = await prompt([
-        {
-            text:
-                'Extract the image links from the following html. There is div  with attribute data-elementor-type="popup". I need the one with 1080w in it. Only return the link, nothing else.' +
-                husehtml,
-        },
-    ]);
-    console.log(response);
-
-    return (response || '').replaceAll('```', '').trim();
-}
+export const website = 'https://husevendeglodebrecen.hu/napi-ajanlat/';
 
 export async function getHuseOffers() {
-    const imageLink = await getImageLink();
-
-    const arrayBuf = await (await fetch(imageLink)).arrayBuffer();
-    const base64ImageFile = Buffer.from(arrayBuf).toString('base64');
+    const html = await (await fetch(website)).text();
 
     const contents = [
         {
-            inlineData: {
-                mimeType: 'image/jpeg',
-                data: base64ImageFile,
-            },
-        },
-        {
-            text: `${RESPONSE_EXTRACT_TASK} ${RESPONSE_STRUCTURE}
-            There is an offer that is available on everyday.
-            instead of putting it a separate group, append it to the regular offers.
-            The output should not contain the phrase " minden munkanap elérhető!".
-             ${DATE_GROUNDING}`,
+            text: `${RESPONSE_EXTRACT_TASK} ${RESPONSE_STRUCTURE} ${html}`,
         },
     ];
     const response = await prompt(contents);
