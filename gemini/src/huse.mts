@@ -4,7 +4,7 @@ import {
     RESPONSE_STRUCTURE,
 } from './google.mts';
 
-export const website = 'https://husevendeglodebrecen.hu/napi-ajanlat/';
+export const website = 'https://husevendeglo.hu/napi-ajanlat/';
 
 export async function getHuseOffers() {
     const html = await (await fetch(website)).text();
