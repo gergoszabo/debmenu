@@ -1,0 +1,26 @@
+{
+    "name": "gemini",
+    "version": "2.0.0",
+    "main": "src/index.mts",
+    "type": "module",
+    "scripts": {
+        "start": "node src/index.mts",
+        "build": "node esbuild.mts",
+        "deploy": "node deploy.mts",
+        "clean": "rm -rf cache results staging result.json"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@aws-sdk/client-s3": "3.927.0",
+        "@aws-sdk/credential-providers": "3.927.0",
+        "@google/genai": "1.29.0"
+    },
+    "devDependencies": {
+        "@aws-sdk/client-lambda": "3.927.0",
+        "dotenv": "17.2.3",
+        "esbuild": "0.26.0"
+    }
+}
