@@ -1,15 +1,2 @@
 .DS_Store
 node_modules
-run.sh
-.aws/*
-!.aws/.gitkeep
-inventory.secret.yaml
-debmenu.js
-debmenu.tar
-result
-cache
-.env
-gemini/*.html
-gemini/result.json
-gemini/staging
-gemini/results
