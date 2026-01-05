@@ -38,6 +38,7 @@ The keys are ISO date strings, and the values are arrays of strings representing
 
 export const DATE_GROUNDING = `Dates are in the format YYYY-MM-DD.
 The current date is ${new Date().toISOString().split('T')[0]}.`;
+export const YEAR_GROUNDING = `The current year is ${new Date().getFullYear()}.`;
 
 let modelCallCount = 0;
 let totalTokenCount = 0;
