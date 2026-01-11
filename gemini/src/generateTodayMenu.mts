@@ -32,6 +32,7 @@ export async function generateHtml(): Promise<string[]> {
 
     const allDates = Array.from(dateSet).sort();
     const todayKey = localDateYYYYMMDD(new Date());
+    const futureDates = allDates.filter((d) => d >= todayKey);
 
     const filenameFor = (dateKey: string, justName: boolean = false) =>
         justName ? `${dateKey}.html` : join(RESULTS_DIR, `${dateKey}.html`);
@@ -44,7 +45,7 @@ export async function generateHtml(): Promise<string[]> {
         parts.push(`<nav>`);
         parts.push(`<strong>Dates:</strong> `);
         const links: string[] = [];
-        for (const d of allDates) {
+        for (const d of futureDates) {
             const fn = filenameFor(d, true);
             if (d === current) {
                 links.push(
@@ -126,8 +127,8 @@ export async function generateHtml(): Promise<string[]> {
 
     const written: string[] = [];
 
-    // Write one HTML file per date key
-    for (const dateKey of allDates) {
+    // Write one HTML file for today or future dates only
+    for (const dateKey of futureDates) {
         const fp = filenameFor(dateKey);
         const html = buildHtmlFor(dateKey);
         await mkdir(dirname(fp), { recursive: true });
