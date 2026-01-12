@@ -20,6 +20,16 @@ spawnSync(
     { stdio: 'inherit' }
 );
 
+// Copy debmenu_run.sh script
+spawnSync(
+    'scp',
+    [
+        join(cwd(), 'debmenu_run.sh'),
+        `${username}@${target}:/apps/debmenu/debmenu_run.sh`,
+    ],
+    { stdio: 'inherit' }
+);
+
 // Deploy the cron setup script
 spawnSync(
     'scp',
