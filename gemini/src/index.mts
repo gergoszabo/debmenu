@@ -48,7 +48,6 @@ export async function handler() {
     await uploadResult();
 }
 
-// Allow running as a script in ES module
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
     handler();
 }
