@@ -16,12 +16,12 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@aws-sdk/client-s3": "3.962.0",
-        "@aws-sdk/credential-providers": "3.962.0",
-        "@google/genai": "1.34.0"
+        "@aws-sdk/client-s3": "3.969.0",
+        "@aws-sdk/credential-providers": "3.969.0",
+        "@google/genai": "1.36.0"
     },
     "devDependencies": {
-        "@aws-sdk/client-lambda": "3.962.0",
+        "@aws-sdk/client-lambda": "3.969.0",
         "@types/node": "^25.0.3",
         "dotenv": "17.2.3",
         "esbuild": "0.27.2"
