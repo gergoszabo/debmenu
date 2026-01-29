@@ -29,6 +29,7 @@ export async function getGovindaOffers() {
     const arrayBuf = await (await fetch(website + imageLink)).arrayBuffer();
     const base64ImageFile = Buffer.from(arrayBuf).toString('base64');
 
+    const text = `${RESPONSE_EXTRACT_TASK} ${RESPONSE_STRUCTURE} don't create sub-categories  ${DATE_GROUNDING}`;
     const contents = [
         {
             inlineData: {
@@ -37,7 +38,7 @@ export async function getGovindaOffers() {
             },
         },
         {
-            text: `${RESPONSE_EXTRACT_TASK} ${RESPONSE_STRUCTURE} don't create sub-categories  ${DATE_GROUNDING}`,
+            text,
         },
     ];
     const response = await prompt(contents);
