@@ -1,0 +1,17 @@
+name: Copilot Setup
+description: Pre-install dependencies for GitHub Copilot coding agent
+
+steps:
+  - name: Use Node.js 24
+    uses: actions/setup-node@v4
+    with:
+      node-version: "24"
+
+  - name: Install npm dependencies
+    run: npm install
+
+  - name: Verify TypeScript configuration
+    run: npx tsc --noEmit
+
+  - name: Check available npm scripts
+    run: npm run | grep -E "start|build|clean|deploy"
