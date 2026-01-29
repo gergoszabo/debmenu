@@ -1,8 +1,0 @@
-# printenv
-export AWS_ACCESS_KEY_ID=
-export AWS_SECRET_ACCESS_KEY=
-
-date >> log.log
-rm -rf cache result
-# node generate.js --skip-upload
-npm run start >> log.log 2>&1

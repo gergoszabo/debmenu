@@ -6,9 +6,7 @@
     "scripts": {
         "start": "node src/index.mts",
         "build": "node esbuild.mts",
-        "build:onprem": "node esbuild_onprem.mts",
         "deploy": "node deploy.mts",
-        "deploy:onprem": "node deploy-onprem.mts",
         "clean": "rm -rf cache results staging result.json"
     },
     "keywords": [],

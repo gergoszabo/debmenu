@@ -1,8 +1,0 @@
-local:
-    hosts:
-        localhost:
-            ansible_connection: local
-
-remote:
-    hosts:
-        box:
