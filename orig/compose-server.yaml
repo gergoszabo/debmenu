@@ -1,4 +1,0 @@
-services:
-    app:
-        image: debmenu-app:latest
-        restart: on-failure
