@@ -30,20 +30,10 @@ spawnSync(
     { stdio: 'inherit' }
 );
 
-// Deploy the cron setup script
-spawnSync(
-    'scp',
-    [
-        join(cwd(), 'setup_debmenu_cron.sh'),
-        `${username}@${target}:/apps/debmenu/setup_debmenu_cron.sh`,
-    ],
-    { stdio: 'inherit' }
-);
-
-// Execute the cron setup script remotely
+// todo: no infra setup in this repository yet...
 spawnSync(
     'ssh',
-    [`${username}@${target}`, 'bash /apps/debmenu/setup_debmenu_cron.sh'],
+    [ `${username}@${target}`, 'pm2 reload debmenu_run' ],
     { stdio: 'inherit' }
 );
 
