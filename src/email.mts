@@ -50,32 +50,28 @@ export async function sendEmailSummary(
     });
 
     const executionTimeSeconds = (executionTimeMs / 1000).toFixed(2);
+    
+    // Strip out style tags from htmlBody
+    const cleanHtmlBody = htmlBody.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '');
 
     const emailHtml = `
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8">
-    <style>
-        body { font-family: system-ui, -apple-system, sans-serif; color: #333; line-height: 1.6; }
-        .summary { background: #f5f5f5; padding: 12px; border-radius: 6px; margin-bottom: 20px; }
-        .summary p { margin: 8px 0; }
-        .label { font-weight: bold; }
-        .content { background: white; padding: 20px; border: 1px solid #ddd; border-radius: 6px; }
-    </style>
 </head>
 <body>
-    <div class="summary">
-        <p><span class="label">Tokens Used:</span> ${tokenCount}</p>
-        <p><span class="label">Execution Time:</span> ${executionTimeSeconds}s</p>
-        <p><span class="label">Generated:</span> ${new Date().toISOString()}</p>
+    <div>
+        <p><span>Tokens Used:</span> ${tokenCount}</p>
+        <p><span>Execution Time:</span> ${executionTimeSeconds}s</p>
+        <p><span>Generated:</span> ${new Date().toISOString()}</p>
     </div>
-    <div class="content">
-        ${htmlBody}
+    <div>
+        ${cleanHtmlBody}
     </div>
 </body>
 </html>
-    `.trim();
+     `.trim();
 
     await transporter.sendMail({
         from: config.senderUsername,
