@@ -1,7 +1,7 @@
 import { writeFileSync, rmSync, readdirSync, existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { generateHtml } from './generateTodayMenu.mts';
-import { getStats } from './google.mts';
+import { getStats, resetStats } from './google.mts';
 import { uploadResult } from './aws.mts';
 import { getForestOffers, website as forestWebsite } from './forest.mts';
 import { getGovindaOffers, website as govindaWebsite } from './govinda.mts';
@@ -57,6 +57,8 @@ export async function handler() {
         const htmlContent = readFileSync(indexHtmlPath, 'utf-8');
         await sendEmailSummary(stats.totalTokenCount, htmlContent, executionTimeMs);
     }
+
+    resetStats();
 }
 
 if (!process.env.AWS_LAMBDA_FUNCTION_NAME) {
