@@ -83,3 +83,14 @@ export async function prompt(contents: ContentListUnion) {
 
     return cleanedResponse;
 }
+
+export function resetStats() {
+    const originalModelCallCount = modelCallCount;
+    const originalTotalTokenCount = totalTokenCount;
+
+    // Reset both counters
+    modelCallCount = 0;
+    totalTokenCount = 0;
+
+    console.log('Stats reset: model calls back to', originalModelCallCount, ', tokens back to', originalTotalTokenCount);
+}
