@@ -17,7 +17,7 @@
         "@aws-sdk/client-s3": "3.1025.0",
         "@aws-sdk/credential-providers": "3.1025.0",
         "@google/genai": "1.48.0",
-        "nodemailer": "8.0.5"
+        "nodemailer": "9.0.1"
     },
     "devDependencies": {
         "@aws-sdk/client-lambda": "3.1025.0",
