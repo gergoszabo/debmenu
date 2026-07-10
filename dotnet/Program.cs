@@ -1,56 +1,33 @@
 ﻿namespace debmenu;
 
-using System.Text;
-using Google.GenAI;
-using Google.GenAI.Types;
+using System.Text.Encodings.Web;
+using System.Text.Json;
 
 public static class Program
 {
     public static async Task Main(string[] args)
     {
         Env.Load();
-        await Test();
-    }
 
-    private static async Task Test()
-    {
-        var apiKey = System.Environment.GetEnvironmentVariable("GEMINI_API_KEY");
-        using var client = new Client(apiKey: apiKey);
+        var gemini = new Gemini(Environment.GetEnvironmentVariable("GEMINI_API_KEY") ?? throw new Exception("GEMINI_API_KEY not set"));
+        var viktoria = await Viktoria.GetOffers(gemini);
+        var govinda = await Govinda.GetOffers(gemini);
+        var forest = await Forest.GetOffers(gemini);
+        var huse = await Huse.GetOffers(gemini);
 
-        // var bytes = await System.IO.File.ReadAllBytesAsync("FOREST_07.06.jpg");
-        var bytes = await System.IO.File.ReadAllBytesAsync("huse.jpg");
-        var imageData = Convert.ToBase64String(bytes);
-
-        var imagePart = new Part
+        var allOffers = new Dictionary<string, Dictionary<string, List<string>>>
         {
-            InlineData = new()
-            {
-                Data = bytes,
-                MimeType = "image/jpeg"
-            }
-        };
-        var textPart = new Part
-        {
-            Text = $@"{PromptConstants.ResponseExtractTask} {PromptConstants.ResponseStructure} {PromptConstants.DateGrounding} {PromptConstants.YearGrounding}"
-        };
-        var parts = new List<Part> { imagePart, textPart };
-        var content = new Content
-        {
-            Parts = parts
+            { "Viktoria", viktoria },
+            { "Govinda", govinda },
+            { "Forest", forest },
+            { "Huse", huse }
         };
 
-        var response = await client.Models.GenerateContentAsync(
-            model: "gemini-2.5-flash", 
-            contents: content,
-            config: new GenerateContentConfig
-            {
-                ThinkingConfig = new ThinkingConfig
-                {
-                    ThinkingBudget = 0
-                }
-            }
-        );
-        
-        Console.WriteLine("{0}: {1}", response.UsageMetadata?.TotalTokenCount, response.Candidates?[0]?.Content?.Parts?[0].Text);
+        await File.WriteAllTextAsync("offers.json", JsonSerializer.Serialize(allOffers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+
+        var offers = await File.ReadAllTextAsync("offers.json");
+        var template = await File.ReadAllTextAsync("template.html");
+        var html = template.Replace("JSON_HERE", offers);
+        await File.WriteAllTextAsync("index.html", html);
     }
 }

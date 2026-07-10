@@ -1,9 +1,11 @@
-using System;
-
 namespace debmenu
 {
     public static class PromptConstants
     {
+      public const string ExtractImageLinkTask = """
+      Extract the image links for \"heti étlap\", \"heti menü\" or the single one with high fetch priority from this piece of html.
+      Only return the links, nothing else.
+""";
         public const string ResponseExtractTask = @"
 Extract the offers from the image grouped for each day 
 day without headers and pricing information. 
@@ -28,7 +30,6 @@ The structure should be like this:
 The keys are ISO date strings, and the values are arrays of strings representing the offers for that day.
 ";
 
-        // Must be 'static readonly' instead of 'const' because DateTime.UtcNow is evaluated at runtime
         public static readonly string DateGrounding = $@"Dates are in the format YYYY-MM-DD.
 The current date is {DateTime.UtcNow:yyyy-MM-dd}.";
 
