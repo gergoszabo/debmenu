@@ -25,7 +25,7 @@ internal static class StepExtension
         return _httpClient.GetStringAsync(url);
     }
 
-    public static Task<byte[]> GetByteArrayAsync(this Step<int> step, string url)
+    public static Task<byte[]> GetByteArrayAsync(this Step<byte[]> step, string url)
     {
         return _httpClient.GetByteArrayAsync(url);
     }
@@ -51,25 +51,24 @@ internal class GetImageLinkFromHtmlStep(string html, Gemini gemini) : GeminiStep
     }
 }
 
-internal class SaveImageFromUrlStep(string imageUrl, string fileName) : Step<int>()
+internal class SaveImageFromUrlStep(string imageUrl) : Step<byte[]>()
 {
-    public override async Task<int> Execute()
+    public override async Task<byte[]> Execute()
     {
         Console.WriteLine($"[SaveImageFromUrlStep] {imageUrl}");
         var bytes = await this.GetByteArrayAsync(imageUrl);
 
-        await File.WriteAllBytesAsync(fileName, bytes);
-        return bytes.Length;
+        return bytes;
     }
 }
 
-internal class ExtractOffersFromImageStep(string imagePath, Gemini gemini) : GeminiStep<string?>(gemini)
+internal class ExtractOffersFromImageStep(byte[] imageBytes, string imageLink, Gemini gemini) : GeminiStep<string?>(gemini)
 {
     public override Task<string?> Execute()
     {
-        Console.WriteLine($"[ExtractOffersFromImageStep] {imagePath}");
+        Console.WriteLine($"[ExtractOffersFromImageStep] {imageLink[Math.Min(25, imageLink.Length)..]} {imageBytes.Length} bytes");
         return Client.NewRequest()
-            .AddImage(imagePath)
+            .AddImage(imageBytes, imageLink)
             .AddExtractTask()
             .SendAsync();
     }

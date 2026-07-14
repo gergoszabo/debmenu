@@ -14,15 +14,14 @@ internal class Gemini(string apiKey)
         return this;
     }
 
-    public Gemini AddImage(string imagePath)
+    public Gemini AddImage(byte[] imageBytes, string imageLink)
     {
-        var bytes = System.IO.File.ReadAllBytes(imagePath);
         var imagePart = new Part
         {
             InlineData = new()
             {
-                Data = bytes,
-                MimeType = GetMimeTypeFromFilePath(imagePath)
+                Data = imageBytes,
+                MimeType = GetMimeTypeFromFilePath(imageLink)
             }
         };
         parts.Add(imagePart);

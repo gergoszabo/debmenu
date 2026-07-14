@@ -8,7 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AWSSDK.S3" Version="4.0.101" />
     <PackageReference Include="Google.GenAI" Version="1.12.0" />
   </ItemGroup>
-
+  
 </Project>

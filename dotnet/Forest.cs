@@ -7,9 +7,8 @@ internal static class Forest
         var url = "https://forestetterem.hu/";
         var html = await new GetHtmlStep(url).Execute();
         var imageLink = await new GetImageLinkFromHtmlStep(html, gemini).Execute() ?? throw new Exception("Failed to extract image link from HTML.");
-        var imagePath = "forest.jpg";
-        await new SaveImageFromUrlStep(imageLink, imagePath).Execute();
-        var offers = await new ExtractOffersFromImageStep(imagePath, gemini).Execute() ?? throw new Exception("Failed to extract offers from image.");
+        var imageBytes = await new SaveImageFromUrlStep(imageLink).Execute();
+        var offers = await new ExtractOffersFromImageStep(imageBytes, imageLink, gemini).Execute() ?? throw new Exception("Failed to extract offers from image.");
         return await new ParseOffersStep(offers).Execute();
     }
 }

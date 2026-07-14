@@ -23,11 +23,15 @@ public static class Program
             { "Huse", huse }
         };
 
-        await File.WriteAllTextAsync("offers.json", JsonSerializer.Serialize(allOffers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping }));
+        var offersJson =JsonSerializer.Serialize(allOffers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
-        var offers = await File.ReadAllTextAsync("offers.json");
-        var template = await File.ReadAllTextAsync("template.html");
-        var html = template.Replace("JSON_HERE", offers);
-        await File.WriteAllTextAsync("index.html", html);
+        var indexHtml = Html.Template.Replace("JSON_HERE", offersJson);
+
+        var aws = new AWS(Environment.GetEnvironmentVariable("AWS_ACCESS_KEY_ID") ?? throw new Exception("AWS_ACCESS_KEY_ID not set"), Environment.GetEnvironmentVariable("AWS_SECRET_ACCESS_KEY") ?? throw new Exception("AWS_SECRET_ACCESS_KEY not set"));
+        await aws.UploadToS3Bucket(indexHtml);
+        // var offers = await File.ReadAllTextAsync("offers.json");
+        // var template = await File.ReadAllTextAsync("template.html");
+        // var html = template.Replace("JSON_HERE", offers);
+        // await File.WriteAllTextAsync("index.html", html);
     }
 }

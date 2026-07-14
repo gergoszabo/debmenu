@@ -12,3 +12,4 @@ obj
 *.jpg
 *.png
 dotnet/offers.json
+!dotnet/template.html
