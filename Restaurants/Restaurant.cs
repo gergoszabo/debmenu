@@ -16,7 +16,7 @@ public abstract class Restaurant(string url,
     public required IInferenceProvider InferenceProvider { get; init; } = inferenceProvider;
     public required ILogger Logger { get; init; } = logger;
 
-    public virtual async Task<Dictionary<string, List<string>>> GetOffers()
+    public virtual async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
         return await ImageWorkflow();
     }
@@ -105,5 +105,5 @@ public abstract class Restaurant(string url,
 
 public interface IRestaurant
 {
-    Task<Dictionary<string, List<string>>> GetOffers();
+    Task<Dictionary<string, List<string>>> GetOffersAsync();
 }

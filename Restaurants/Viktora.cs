@@ -12,7 +12,7 @@ public class Viktoria(
         inferenceProvider,
         logger)
 {
-    public override async Task<Dictionary<string, List<string>>> GetOffers()
+    public override async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
         return await HtmlWorkflow();
     }

@@ -45,10 +45,11 @@ try
     builder.Services.AddTransient<IInferenceProvider>(sp =>
         new CachedInferenceProvider(sp.GetRequiredKeyedService<IInferenceProvider>("gemini"), sp.GetRequiredService<ILogger>())
     );
-    builder.Services.AddSingleton<Forest>();
-    builder.Services.AddSingleton<Viktoria>();
-    builder.Services.AddSingleton<Huse>();
-    builder.Services.AddSingleton<Govinda>();
+
+    builder.Services.AddTransient<IRestaurant, Forest>();
+    builder.Services.AddTransient<IRestaurant, Viktoria>();
+    builder.Services.AddTransient<IRestaurant, Huse>();
+    builder.Services.AddTransient<IRestaurant, Govinda>();
     builder.Services.AddSingleton<DataCollector>();
     builder.Services.AddSingleton<Orchestrator>();
 

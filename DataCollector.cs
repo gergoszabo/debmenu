@@ -5,30 +5,35 @@ using Serilog;
 namespace debmenu;
 
 public class DataCollector(
-    Forest forest,
-    Govinda govinda,
-    Huse huse,
-    Viktoria viktoria,
-    ILogger logger
-    )
+    IEnumerable<IRestaurant> scrapers,
+    ILogger logger) : IDataCollector
 {
-    private Forest Forest { get; } = forest;
-    private Govinda Govinda { get; } = govinda;
-    private Huse Huse { get; } = huse;
-    private Viktoria Viktoria { get; } = viktoria;
+    private IEnumerable<IRestaurant> Restaurants { get; } = scrapers;
     private ILogger Logger { get; } = logger;
 
     public async Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers()
     {
         using var op = new TimedOperation("DataCollector CollectOffers", [], Logger);
-        var allOffers = new Dictionary<string, Dictionary<string, List<string>>>
+        var allOffers = new Dictionary<string, Dictionary<string, List<string>>>();
+
+        foreach (var restaurant in Restaurants)
         {
-            { "Viktoria", await Viktoria.GetOffers() },
-            { "Govinda", await Govinda.GetOffers() },
-            { "Forest", await Forest.GetOffers() },
-            { "Huse", await Huse.GetOffers() }
-        };
+            try
+            {
+                var offers = await restaurant.GetOffersAsync(); 
+                allOffers[restaurant.GetType().Name] = offers;
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Failed to collect offers from scraper: {ScraperType}", restaurant.GetType().Name);
+            }
+        }
 
         return allOffers;
     }
+}
+
+interface IDataCollector
+{
+    Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers();
 }
