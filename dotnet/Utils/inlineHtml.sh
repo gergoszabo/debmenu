@@ -2,7 +2,7 @@
 set -euo pipefail
 
 template_file="${1:-template.html}"
-namespace="${2:-debmenu}"
+namespace="${2:-debmenu.Utils}"
 class_name="${3:-Html}"
 property_name="${4:-Template}"
 

@@ -7,7 +7,7 @@ public static class Html
 <html lang=""hu"">
 <head>
     <meta charset=""UTF-8"">
-    <title>Napi Menü</title>
+    <title>DebMenu VVV</title>
     <meta name=""viewport"" content=""width=device-width,initial-scale=1""/>
     <style>
         body { font-family: sans-serif; background: #f3f4f6; padding: 20px; color: #374151; }
@@ -19,6 +19,7 @@ public static class Html
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
         th { background: #f9fafb; }
         ul { margin: 0; padding-left: 20px; }
+        footer { text-align: center; margin-top: 2em; }
     </style>
 </head>
 <body>
@@ -86,6 +87,7 @@ public static class Html
     render(allDates.includes(today) ? today : allDates[allDates.length - 1]);
 </script>
 
+<footer>version VVV</footer>
 </body>
 </html>
 ";
