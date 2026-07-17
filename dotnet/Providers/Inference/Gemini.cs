@@ -70,22 +70,6 @@ public class Gemini : IInferenceProvider
 
         return textContent.Replace("```json", "").Replace("```", "").Trim();
     }
-
-    private string? HandleResponse(Task<GenerateContentResponse> response)
-    {
-        ContentParts.Clear();
-
-        var result = response.GetAwaiter().GetResult();
-
-        var textContent = result?.Candidates?[0]?.Content?.Parts?[0].Text;
-
-        if (string.IsNullOrEmpty(textContent))
-        {
-            throw new Exception("No text content found in the response.");
-        }
-
-        return textContent.Replace("```json", "").Replace("```", "").Trim();
-    }
 }
 
 public class GeminiOptions

@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using System.Text.Json;
+using debmenu;
 using debmenu.Providers.Inference;
 using debmenu.Restaurants;
 using Microsoft.Extensions.Configuration;
@@ -33,20 +34,31 @@ builder.Services.AddOptions<GeminiOptions>()
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddTransient<IInferenceProvider, Gemini>();
+builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
+builder.Services.AddTransient<IInferenceProvider>(sp => 
+    new CachedInferenceProvider(sp.GetRequiredKeyedService<IInferenceProvider>("gemini"), sp.GetRequiredService<ILogger>())
+);
 builder.Services.AddSingleton<Forest>();
 builder.Services.AddSingleton<Viktoria>();
 builder.Services.AddSingleton<Huse>();
 builder.Services.AddSingleton<Govinda>();
+builder.Services.AddSingleton<DataCollector>();
 
 using IHost host = builder.Build();
 
-var restaurant = host.Services.GetRequiredService<Govinda>();
+// var restaurant = host.Services.GetRequiredService<Viktoria>();
 
-var response = await restaurant.GetOffers();
+// var response = await restaurant.GetOffers();
 
-Console.WriteLine(JsonSerializer.Serialize(response, new JsonSerializerOptions(){ WriteIndented = true }));
+// Console.WriteLine(JsonSerializer.Serialize(response, new JsonSerializerOptions(){ WriteIndented = true }));
 
+var dataCollector = host.Services.GetRequiredService<DataCollector>();
+
+var offers = await dataCollector.CollectOffers();
+
+Log.Information("{Offers}", offers);
+
+Log.CloseAndFlush();
 
 
 
