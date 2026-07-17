@@ -1,22 +1,50 @@
 ﻿// namespace debmenu;
 
-using System.Text.Encodings.Web;
+using System.Reflection;
 using System.Text.Json;
 using debmenu.Providers.Inference;
+using debmenu.Restaurants;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-
+using Serilog;
 
 var builder = Host.CreateApplicationBuilder();
 
-builder.Services.Configure<GeminiOptions>(builder.Configuration.GetSection("Gemini"));
+builder.Configuration.AddUserSecrets(Assembly.GetExecutingAssembly(), optional: true);
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Information()
+    .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning)
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .WriteTo.Console()
+    .CreateLogger();
+
+builder.Services.AddSerilog();
+
+builder.Logging.AddSerilog();
+
+builder.Services.AddSingleton(Log.Logger);
+
+builder.Services.AddHttpClient();
+
+builder.Services.AddOptions<GeminiOptions>()
+    .Bind(builder.Configuration.GetSection("Gemini"))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
 
 builder.Services.AddTransient<IInferenceProvider, Gemini>();
-
-// builder.Services.AddTransient<IMyService, MyService>();
-// builder.Services.AddSingleton<Worker>();
+builder.Services.AddSingleton<Forest>();
 
 using IHost host = builder.Build();
+
+var forest = host.Services.GetRequiredService<Forest>();
+
+var response = await forest.GetOffers();
+
+Console.WriteLine(JsonSerializer.Serialize(response, new JsonSerializerOptions(){ WriteIndented = true }));
+
+
 
 // public static class Program
 // {

@@ -1,5 +1,7 @@
+using System.ComponentModel.DataAnnotations;
 using Google.GenAI;
 using Google.GenAI.Types;
+using Microsoft.Extensions.Options;
 
 namespace debmenu.Providers.Inference;
 
@@ -10,9 +12,9 @@ public class Gemini : IInferenceProvider
 
     private readonly List<Part> ContentParts = [];
 
-    public Gemini(GeminiOptions options)
+    public Gemini(IOptions<GeminiOptions> options)
     {
-        Options = options;
+        Options = options.Value;
         client = new(apiKey: Options.ApiKey);
     }
 
@@ -77,6 +79,7 @@ public class Gemini : IInferenceProvider
 
 public class GeminiOptions
 {
+    [Required(AllowEmptyStrings = false, ErrorMessage = "Gemini API Key is missing or empty in configuration.")]
     public required string ApiKey { get; set; } = string.Empty;
     public required string Model { get; set; } = "gemini-3.1-flash-lite";
 }

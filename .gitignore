@@ -13,3 +13,4 @@ obj
 *.png
 dotnet/offers.json
 !dotnet/template.html
+appsettings.Development.json

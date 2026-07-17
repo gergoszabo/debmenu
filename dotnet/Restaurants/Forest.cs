@@ -1,19 +1,20 @@
 using debmenu.Providers.Inference;
+using Serilog;
 
 namespace debmenu.Restaurants;
 
-internal class Forest : Restaurant
+public class Forest(
+    IInferenceProvider inferenceProvider,
+    IHttpClientFactory httpClientFactory,
+    ILogger logger) : Restaurant(
+        "https://forestetterem.hu/",
+        httpClientFactory,
+        inferenceProvider,
+        logger)
 {
-    internal Forest(
-        IInferenceProvider inferenceProvider,
-        IHttpClientFactory httpClientFactory) : base(
-            "https://forestetterem.hu/",
-            httpClientFactory,
-            inferenceProvider)
-    { }
-
-    public override async Task<Dictionary<string, List<string>>> GetOffers(Gemini gemini)
+    public override async Task<Dictionary<string, List<string>>> GetOffers()
     {
+        using var op = CreateTimedOperation()([]);
         var html = await GetHtmlFromUrl();
         var imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("imageLink");
         var imageBytes = await GetImageBytesFromLink(imageLink);

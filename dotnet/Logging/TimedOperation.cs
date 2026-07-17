@@ -3,15 +3,23 @@ using Serilog;
 
 namespace debmenu.Logging;
 
-public class TimedOperation(string messageTemplate, object[] args,  ILogger logger) : IDisposable
+public class TimedOperation : IDisposable
 {
-    public string MessageTemplate { get; } = messageTemplate;
-    public object[] Args { get; } = args;
-    public ILogger Logger { get; } = logger;
+    public string MessageTemplate { get; }
+    public object[] Args { get; }
+    public ILogger Logger { get; }
     public long StartedAt { get; } = Stopwatch.GetTimestamp();
+
+    public TimedOperation(string messageTemplate, object[] args,  ILogger logger)
+    {
+        MessageTemplate = messageTemplate;
+        Args = args;
+        Logger = logger;
+        Logger.Information($"{MessageTemplate} started", Args);
+    }
 
     public void Dispose()
     {
-        Logger.Information(MessageTemplate, Args);
+        Logger.Information($"{MessageTemplate} took {Stopwatch.GetElapsedTime(StartedAt)} ms", Args);
     }
 }
