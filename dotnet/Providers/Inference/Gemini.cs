@@ -22,7 +22,7 @@ public class Gemini : IInferenceProvider
     {
         var textPart = new Part
         {
-            Text = $@"{PromptConstants.ResponseExtractTask} {PromptConstants.ResponseStructure} {PromptConstants.DateGrounding} {PromptConstants.YearGrounding} {content}"
+            Text = content
         };
         ContentParts.Add(textPart);
     }
@@ -40,14 +40,14 @@ public class Gemini : IInferenceProvider
         ContentParts.Add(imagePart);
     }
 
-    public Task<string?> Inference()
+    public async Task<string?> Inference()
     {
         var content = new Content
         {
             Parts = ContentParts
         };
 
-        return client.Models.GenerateContentAsync(
+        var response = await client.Models.GenerateContentAsync(
             model: Options.Model, 
             contents: content,
             config: new GenerateContentConfig
@@ -57,7 +57,18 @@ public class Gemini : IInferenceProvider
                     ThinkingBudget = 0
                 }
             }
-        ).ContinueWith(HandleResponse);
+        );
+
+        ContentParts.Clear();
+
+        var textContent = response?.Candidates?[0]?.Content?.Parts?[0].Text;
+
+        if (string.IsNullOrEmpty(textContent))
+        {
+            throw new Exception("No text content found in the response.");
+        }
+
+        return textContent.Replace("```json", "").Replace("```", "").Trim();
     }
 
     private string? HandleResponse(Task<GenerateContentResponse> response)

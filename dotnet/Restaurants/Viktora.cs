@@ -3,13 +3,17 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Forest(
+public class Viktoria(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
-        "https://forestetterem.hu/",
+        "https://www.viktoriaetterem.hu/menu",
         httpClientFactory,
         inferenceProvider,
         logger)
 {
+    public override async Task<Dictionary<string, List<string>>> GetOffers()
+    {
+        return await HtmlWorkflow();
+    }
 }

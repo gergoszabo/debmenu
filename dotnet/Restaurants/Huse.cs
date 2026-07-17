@@ -3,11 +3,11 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Forest(
+public class Huse(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
-        "https://forestetterem.hu/",
+        "https://husevendeglo.hu/napi-ajanlat/",
         httpClientFactory,
         inferenceProvider,
         logger)

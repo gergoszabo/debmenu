@@ -17,7 +17,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-    .WriteTo.Console()
+    .WriteTo.Console( outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
     .CreateLogger();
 
 builder.Services.AddSerilog();
@@ -35,14 +35,18 @@ builder.Services.AddOptions<GeminiOptions>()
 
 builder.Services.AddTransient<IInferenceProvider, Gemini>();
 builder.Services.AddSingleton<Forest>();
+builder.Services.AddSingleton<Viktoria>();
+builder.Services.AddSingleton<Huse>();
+builder.Services.AddSingleton<Govinda>();
 
 using IHost host = builder.Build();
 
-var forest = host.Services.GetRequiredService<Forest>();
+var restaurant = host.Services.GetRequiredService<Govinda>();
 
-var response = await forest.GetOffers();
+var response = await restaurant.GetOffers();
 
 Console.WriteLine(JsonSerializer.Serialize(response, new JsonSerializerOptions(){ WriteIndented = true }));
+
 
 
 

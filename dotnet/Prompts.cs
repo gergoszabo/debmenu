@@ -34,5 +34,7 @@ The keys are ISO date strings, and the values are arrays of strings representing
 The current date is {DateTime.UtcNow:yyyy-MM-dd}.";
 
         public static readonly string YearGrounding = $"The current year is {DateTime.UtcNow.Year}.";
+
+        public static readonly string ExtractInstruction = $"{ResponseExtractTask} {ResponseStructure} {DateGrounding} {YearGrounding}";
     }
 }
