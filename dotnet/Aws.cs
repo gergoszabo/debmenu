@@ -5,7 +5,7 @@ using Amazon.S3.Model;
 
 namespace debmenu;
 
-internal class AWS(string secretAccessKeyId, string secretAccessKey)
+internal class AWsS(string secretAccessKeyId, string secretAccessKey)
 {
     public async Task UploadToS3Bucket(string content)
     {

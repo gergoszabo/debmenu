@@ -14,15 +14,12 @@ fi
 content=$(sed 's/"/""/g' "$template_file")
 
 cat <<EOF > "${class_name}.cs"
-using System;
+namespace $namespace;
 
-namespace $namespace
+public static class $class_name
 {
-    public static class $class_name
-    {
-        public static string $property_name => @"
+    public static string $property_name => @"
 $content
 ";
-    }
 }
 EOF

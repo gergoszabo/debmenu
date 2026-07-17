@@ -1,8 +1,8 @@
-namespace debmenu
+namespace debmenu.Utils;
+
+public static class Html
 {
-    public static class Html
-    {
-        public static string Template => @"
+    public static string Template => @"
 <!DOCTYPE html>
 <html lang=""hu"">
 <head>
@@ -89,5 +89,4 @@ namespace debmenu
 </body>
 </html>
 ";
-    }
 }

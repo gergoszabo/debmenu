@@ -12,5 +12,5 @@ obj
 *.jpg
 *.png
 dotnet/offers.json
-!dotnet/template.html
+!dotnet/Utils/template.html
 appsettings.Development.json
