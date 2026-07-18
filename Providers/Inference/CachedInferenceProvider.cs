@@ -51,6 +51,9 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
             Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName)!);
         }
 
+        StringContents.Clear();
+        ImageContents.Clear();
+
         if (File.Exists(cacheFileName))
         {
             return await File.ReadAllTextAsync(cacheFileName);

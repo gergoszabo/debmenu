@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Google.GenAI;
 using Google.GenAI.Types;
 using Microsoft.Extensions.Options;
@@ -70,11 +69,4 @@ public class Gemini : IInferenceProvider
 
         return textContent.Replace("```json", "").Replace("```", "").Trim();
     }
-}
-
-public class GeminiOptions
-{
-    [Required(AllowEmptyStrings = false, ErrorMessage = "Gemini API Key is missing or empty in configuration.")]
-    public required string ApiKey { get; set; } = string.Empty;
-    public required string Model { get; set; } = "gemini-3.1-flash-lite";
 }

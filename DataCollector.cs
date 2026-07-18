@@ -32,8 +32,3 @@ public class DataCollector(
         return allOffers;
     }
 }
-
-interface IDataCollector
-{
-    Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers();
-}
