@@ -10,14 +10,14 @@ public static class Html
     <title>DebMenu VVV</title>
     <meta name=""viewport"" content=""width=device-width,initial-scale=1""/>
     <style>
-        body { font-family: sans-serif; background: #f3f4f6; padding: 20px; color: #374151; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        body { font-family: sans-serif; background: black; padding: 20px; color: white; }
+        .container { max-width: 800px; margin: 0 auto; background: black; color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .nav { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #e5e7eb; padding-bottom: 10px; overflow-x: auto; }
         button { padding: 8px 16px; border: none; border-radius: 20px; cursor: pointer; background: #e5e7eb; font-weight: bold; }
         button.active { background: #2563eb; color: white; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e5e7eb; vertical-align: top; }
-        th { background: #f9fafb; }
+        /* th { background: #f9fafb; } */
         ul { margin: 0; padding-left: 20px; }
         footer { text-align: center; margin-top: 2em; }
     </style>

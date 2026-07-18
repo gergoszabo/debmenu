@@ -32,6 +32,6 @@ public class Orchestrator(DataCollector dataCollector,
 
         File.WriteAllText("index.html", htmlContent);
 
-        await InfrastructureProvider.Upload(htmlContent, "index.html");
+        // await InfrastructureProvider.Upload(htmlContent, "index.html");
     }
 }
