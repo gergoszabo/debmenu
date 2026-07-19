@@ -1,6 +1,6 @@
 namespace debmenu.Utils;
 
-public static class Html
+internal static class Html
 {
     public static string Template => @"
 <!DOCTYPE html>

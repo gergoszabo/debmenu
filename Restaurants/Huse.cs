@@ -3,13 +3,15 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Huse(
+#pragma warning disable CA1812
+internal sealed class Huse(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
-        "https://husevendeglo.hu/napi-ajanlat/",
+        new Uri("https://husevendeglo.hu/napi-ajanlat/"),
         httpClientFactory,
         inferenceProvider,
         logger)
 {
 }
+#pragma warning restore CA1812

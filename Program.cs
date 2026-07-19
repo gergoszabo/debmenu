@@ -1,5 +1,6 @@
-﻿// namespace debmenu;
+// namespace debmenu;
 
+using System.Globalization;
 using System.Reflection;
 using debmenu;
 using debmenu.Providers.Inference;
@@ -18,7 +19,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .MinimumLevel.Override("System.Net.Http.HttpClient", Serilog.Events.LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
-    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .WriteTo.Console(outputTemplate: "[{Timestamp:HH:mm:ss.fff} {Level:u3}] {Message:lj}{NewLine}{Exception}", formatProvider: new CultureInfo("hu"))
     .CreateLogger();
 
 try
@@ -59,6 +60,6 @@ try
 }
 finally
 {
-    Log.CloseAndFlush();
+    await Log.CloseAndFlushAsync();
 }
 

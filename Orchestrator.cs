@@ -8,13 +8,16 @@ using Serilog;
 
 namespace debmenu;
 
-public class Orchestrator(DataCollector dataCollector,
+#pragma warning disable CA1812
+internal sealed class Orchestrator(DataCollector dataCollector,
     IInfrastructureProvider infrastructureProvider,
     ILogger logger)
 {
     private DataCollector DataCollector { get; } = dataCollector;
     private IInfrastructureProvider InfrastructureProvider { get; } = infrastructureProvider;
     private ILogger Logger { get; } = logger;
+
+    private static JsonSerializerOptions jsonSerializerOptions = new() { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     public async Task RunAsync()
     {
@@ -23,15 +26,16 @@ public class Orchestrator(DataCollector dataCollector,
         string? version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion;
-        
+
         var offers = await DataCollector.CollectOffers();
 
-        var offersJson = JsonSerializer.Serialize(offers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
+        string offersJson = JsonSerializer.Serialize(offers, jsonSerializerOptions);
 
-        var htmlContent = Html.Template.Replace("JSON_HERE", offersJson).Replace("VVV", version);
+        string htmlContent = Html.Template.Replace("JSON_HERE", offersJson, StringComparison.InvariantCulture).Replace("VVV", version, StringComparison.InvariantCulture);
 
-        File.WriteAllText("index.html", htmlContent);
+        await File.WriteAllTextAsync("index.html", htmlContent);
 
         // await InfrastructureProvider.Upload(htmlContent, "index.html");
     }
 }
+#pragma warning restore CA1812

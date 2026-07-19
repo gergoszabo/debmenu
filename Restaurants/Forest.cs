@@ -3,13 +3,15 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Forest(
+#pragma warning disable CA1812
+internal sealed class Forest(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
-        "https://forestetterem.hu/",
+        new Uri("https://forestetterem.hu/"),
         httpClientFactory,
         inferenceProvider,
         logger)
 {
 }
+#pragma warning restore CA1812

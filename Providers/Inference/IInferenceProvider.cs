@@ -1,8 +1,8 @@
 namespace debmenu.Providers.Inference;
 
-public interface IInferenceProvider
+internal interface IInferenceProvider
 {
-    void AddContent(string content);
-    void AddImage(byte[] imageBytes, string fileName);
-    Task<string?> Inference();
+    public void AddContent(string content);
+    public void AddImage(byte[] imageBytes, string fileName);
+    public Task<string?> Inference();
 }

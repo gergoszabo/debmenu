@@ -4,7 +4,8 @@ using Serilog;
 
 namespace debmenu;
 
-public class DataCollector(
+#pragma warning disable CA1812
+internal sealed class DataCollector(
     IEnumerable<IRestaurant> scrapers,
     ILogger logger) : IDataCollector
 {
@@ -20,10 +21,12 @@ public class DataCollector(
         {
             try
             {
-                var offers = await restaurant.GetOffersAsync(); 
+                var offers = await restaurant.GetOffersAsync();
                 allOffers[restaurant.GetType().Name] = offers;
             }
+#pragma warning disable CA1031
             catch (Exception ex)
+#pragma warning restore CA1812
             {
                 Logger.Error(ex, "Failed to collect offers from scraper: {ScraperType}", restaurant.GetType().Name);
             }
@@ -32,3 +35,4 @@ public class DataCollector(
         return allOffers;
     }
 }
+#pragma warning restore CA1812

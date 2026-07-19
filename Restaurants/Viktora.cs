@@ -3,11 +3,12 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Viktoria(
+#pragma warning disable CA1812
+internal sealed class Viktoria(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
-        "https://www.viktoriaetterem.hu/menu",
+        new Uri("https://www.viktoriaetterem.hu/menu"),
         httpClientFactory,
         inferenceProvider,
         logger)
@@ -17,3 +18,4 @@ public class Viktoria(
         return await HtmlWorkflow();
     }
 }
+#pragma warning restore CA1812

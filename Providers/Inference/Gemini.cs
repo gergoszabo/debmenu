@@ -4,7 +4,8 @@ using Microsoft.Extensions.Options;
 
 namespace debmenu.Providers.Inference;
 
-public class Gemini : IInferenceProvider
+#pragma warning disable CA1812
+internal sealed class Gemini : IInferenceProvider, IDisposable
 {
     private GeminiOptions Options { get; }
     private readonly Client client;
@@ -47,7 +48,7 @@ public class Gemini : IInferenceProvider
         };
 
         var response = await client.Models.GenerateContentAsync(
-            model: Options.Model, 
+            model: Options.Model,
             contents: content,
             config: new GenerateContentConfig
             {
@@ -60,13 +61,19 @@ public class Gemini : IInferenceProvider
 
         ContentParts.Clear();
 
-        var textContent = response?.Candidates?[0]?.Content?.Parts?[0].Text;
+        string? textContent = response?.Candidates?[0]?.Content?.Parts?[0].Text;
 
         if (string.IsNullOrEmpty(textContent))
         {
-            throw new Exception("No text content found in the response.");
+            throw new NoTextContentFoundInResponseException();
         }
 
-        return textContent.Replace("```json", "").Replace("```", "").Trim();
+        return textContent.Replace("```json", "", StringComparison.InvariantCulture).Replace("```", "", StringComparison.InvariantCulture).Trim();
+    }
+
+    public void Dispose()
+    {
+        client.Dispose();
     }
 }
+#pragma warning restore CA1812

@@ -1,6 +1,6 @@
 namespace debmenu.Providers.Infrastructure;
 
-public interface IInfrastructureProvider
+internal interface IInfrastructureProvider
 {
-    Task Upload(string content, string fileName);
+    public Task Upload(string content, string fileName);
 }

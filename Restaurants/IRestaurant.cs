@@ -1,6 +1,6 @@
 namespace debmenu.Restaurants;
 
-public interface IRestaurant
+internal interface IRestaurant
 {
-    Task<Dictionary<string, List<string>>> GetOffersAsync();
+    public Task<Dictionary<string, List<string>>> GetOffersAsync();
 }

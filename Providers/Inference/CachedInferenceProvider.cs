@@ -5,7 +5,7 @@ using Serilog;
 
 namespace debmenu.Providers.Inference;
 
-public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
+internal sealed class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
 {
     private IInferenceProvider InferenceProvider { get; } = inferenceProvider;
     private ILogger Logger { get; } = logger;
@@ -31,21 +31,21 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
         List<byte> hashes = [];
 
-        foreach (var content in StringContents)
+        foreach (string content in StringContents)
         {
-            hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content)));
+            hashes.AddRange(SHA256.HashData(Encoding.UTF8.GetBytes(content)));
         }
 
         foreach (var content in ImageContents)
         {
-            hashes.AddRange(SHA1.HashData(content.Item1));
-            hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content.Item2)));
+            hashes.AddRange(SHA256.HashData(content.Item1));
+            hashes.AddRange(SHA256.HashData(Encoding.UTF8.GetBytes(content.Item2)));
         }
 
-        var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
+        string finalHash = Convert.ToHexString(SHA256.HashData([.. hashes]));
 
-        var cacheFileName = $"Cache/{finalHash}";
-        
+        string cacheFileName = $"Cache/{finalHash}";
+
         if (!Directory.Exists(Path.GetDirectoryName(cacheFileName)))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName)!);
@@ -59,7 +59,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
             return await File.ReadAllTextAsync(cacheFileName);
         }
 
-        var result = await InferenceProvider.Inference();
+        string? result = await InferenceProvider.Inference();
 
         await File.WriteAllTextAsync(cacheFileName, result);
 

@@ -9,8 +9,24 @@
     <Version>3.0.0</Version>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <!-- <RuntimeIdentifier>linux-x64</RuntimeIdentifier> -->
   </PropertyGroup>
+
+  <PropertyGroup Condition="'$(_IsPublishing)' == 'true'">
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisMode>All</AnalysisMode>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors>CA1062,CA1303</WarningsAsErrors>
+  </PropertyGroup>
+
+  <Target Name="CheckFormatting" AfterTargets="CoreBuild" Condition="'$(Configuration)'=='Release'">
+    <Exec Command="dotnet format --verify-no-changes" IgnoreExitCode="false" />
+  </Target>
 
   <ItemGroup>
     <PackageReference Include="AWSSDK.S3" Version="4.0.101" />
@@ -24,5 +40,4 @@
     <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
     <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
   </ItemGroup>
-  
 </Project>

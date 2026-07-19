@@ -3,11 +3,12 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Govinda (
+#pragma warning disable CA1812
+internal sealed class Govinda(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
-        "https://www.govindadebrecen.hu/",
+        new Uri("https://www.govindadebrecen.hu/"),
         httpClientFactory,
         inferenceProvider,
         logger)
@@ -15,9 +16,10 @@ public class Govinda (
     protected override async Task<string> GetImageLinkFromUrl()
     {
         using var op = CreateTimedOperation(nameof(GetImageLinkFromUrl));
-        var html = await GetHtmlFromUrl();
-        var imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
+        string html = await GetHtmlFromUrl();
+        string imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
 
-        return $"{Url}{imageLink}";
+        return $"{Uri}{imageLink}";
     }
 }
+#pragma warning restore CA1812
