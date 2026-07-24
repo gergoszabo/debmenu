@@ -1,0 +1,13 @@
+[Unit]
+Description=Run Debmenu Docker Task at 8am and 11am Hungary Time
+
+[Timer]
+# Option A: List two separate OnCalendar directives (Cleanest & standard)
+OnCalendar=*-*-* 08:00:00 Europe/Budapest
+OnCalendar=*-*-* 11:00:00 Europe/Budapest
+
+# Ensures missed executions run if system was offline
+Persistent=true
+
+[Install]
+WantedBy=timers.target

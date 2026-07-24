@@ -1,0 +1,1 @@
+docker run --rm -d -v $(pwd):/app:rw -v app-cache:/cache -v ~/.microsoft/user-secrets:/root/.microsoft/user-secrets:ro --restart always mcr.microsoft.com/dotnet/sdk:10.0 bash -c "cd /app && dotnet run"

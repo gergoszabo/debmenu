@@ -1,0 +1,13 @@
+[Unit]
+Description=Debmenu Docker Runner Task
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=gary
+WorkingDirectory=/home/gary/prod/debmenu
+ExecStart=/home/gary/prod/debmenu/run.sh
+
+[Install]
+WantedBy=multi-user.target
