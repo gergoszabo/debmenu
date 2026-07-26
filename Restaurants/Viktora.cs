@@ -10,7 +10,8 @@ public class Viktoria(
         "https://www.viktoriaetterem.hu/menu",
         httpClientFactory,
         inferenceProvider,
-        logger)
+        logger,
+        [])
 {
     public override async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {

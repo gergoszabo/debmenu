@@ -50,12 +50,12 @@ try
     builder.Services.AddTransient<IRestaurant, Viktoria>();
     builder.Services.AddTransient<IRestaurant, Huse>();
     builder.Services.AddTransient<IRestaurant, Govinda>();
-    builder.Services.AddSingleton<DataCollector>();
-    builder.Services.AddSingleton<Orchestrator>();
+    builder.Services.AddSingleton<IDataCollector, DataCollector>();
+    builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
 
     using IHost host = builder.Build();
 
-    await host.Services.GetRequiredService<Orchestrator>().RunAsync();
+    await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
 }
 finally
 {

@@ -1,3 +1,4 @@
+using Amazon.Runtime.Internal.Util;
 using Google.GenAI;
 using Google.GenAI.Types;
 using Microsoft.Extensions.Options;
@@ -47,7 +48,7 @@ public class Gemini : IInferenceProvider
         };
 
         var response = await client.Models.GenerateContentAsync(
-            model: Options.Model, 
+            model: Options.Model,
             contents: content,
             config: new GenerateContentConfig
             {

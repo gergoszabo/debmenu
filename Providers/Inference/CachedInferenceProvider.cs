@@ -45,7 +45,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
         var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
 
         var cacheFileName = $"Cache/{finalHash}";
-        
+
         if (!Directory.Exists(Path.GetDirectoryName(cacheFileName)))
         {
             Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName)!);
