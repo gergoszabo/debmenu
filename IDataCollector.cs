@@ -1,6 +1,6 @@
 namespace debmenu;
 
-interface IDataCollector
+public interface IDataCollector
 {
     Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers();
 }

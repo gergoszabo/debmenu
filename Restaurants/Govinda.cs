@@ -3,14 +3,15 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
-public class Govinda (
+public class Govinda(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
     ILogger logger) : Restaurant(
         "https://www.govindadebrecen.hu/",
         httpClientFactory,
         inferenceProvider,
-        logger)
+        logger,
+        [])
 {
     protected override async Task<string> GetImageLinkFromUrl()
     {

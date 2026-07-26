@@ -10,6 +10,18 @@ public class Forest(
         "https://forestetterem.hu/",
         httpClientFactory,
         inferenceProvider,
-        logger)
+        logger,
+        ["There is a section called 'Heti leves ajánlat' and 'Heti grill ajánlat'. ",
+        "Those needs to be added to every day. The 'Heti grill ajánlat' contains one item each line, ",
+        "it might happen that it was broken into multiple line due space constraints, apply some hungarian linguistics to detect this"])
 {
+    protected override async Task<string> GetImageLinkFromUrl()
+    {
+        var html = await GetHtmlFromUrl();
+        html = html[html.IndexOf("Heti étlap")..];
+        html = html[..(html.IndexOf(".jpg\"") + 4)];
+        html = html[html.IndexOf("http://")..];
+
+        return html;
+    }
 }

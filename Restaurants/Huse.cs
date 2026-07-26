@@ -10,6 +10,7 @@ public class Huse(
         "https://husevendeglo.hu/napi-ajanlat/",
         httpClientFactory,
         inferenceProvider,
-        logger)
+        logger,
+        ["Make sure the extra offering 'Állandó ajánlatunk' gets added to every day"])
 {
 }

@@ -8,11 +8,11 @@ using Serilog;
 
 namespace debmenu;
 
-public class Orchestrator(DataCollector dataCollector,
+public class Orchestrator(IDataCollector dataCollector,
     IInfrastructureProvider infrastructureProvider,
-    ILogger logger)
+    ILogger logger) : IOrchestrator
 {
-    private DataCollector DataCollector { get; } = dataCollector;
+    private IDataCollector DataCollector { get; } = dataCollector;
     private IInfrastructureProvider InfrastructureProvider { get; } = infrastructureProvider;
     private ILogger Logger { get; } = logger;
 
@@ -23,7 +23,7 @@ public class Orchestrator(DataCollector dataCollector,
         string? version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion;
-        
+
         var offers = await DataCollector.CollectOffers();
 
         var offersJson = JsonSerializer.Serialize(offers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
@@ -32,6 +32,6 @@ public class Orchestrator(DataCollector dataCollector,
 
         File.WriteAllText("index.html", htmlContent);
 
-        // await InfrastructureProvider.Upload(htmlContent, "index.html");
+        await InfrastructureProvider.Upload(htmlContent, "index.html");
     }
 }

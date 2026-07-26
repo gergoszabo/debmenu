@@ -20,7 +20,7 @@ public class DataCollector(
         {
             try
             {
-                var offers = await restaurant.GetOffersAsync(); 
+                var offers = await restaurant.GetOffersAsync();
                 allOffers[restaurant.GetType().Name] = offers;
             }
             catch (Exception ex)

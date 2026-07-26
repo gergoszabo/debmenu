@@ -9,12 +9,15 @@ namespace debmenu.Restaurants;
 public abstract class Restaurant(string url,
     IHttpClientFactory httpClientFactory,
     IInferenceProvider inferenceProvider,
-    ILogger logger) : IRestaurant
+    ILogger logger,
+    List<string> extraInstructions) : IRestaurant
 {
     public required string Url { get; init; } = url;
     public required IHttpClientFactory HttpClientFactory { get; init; } = httpClientFactory;
     public required IInferenceProvider InferenceProvider { get; init; } = inferenceProvider;
     public required ILogger Logger { get; init; } = logger;
+    protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseExtractTask, PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
+    protected List<string> ExtraInstructions { get; set; } = extraInstructions;
 
     public virtual async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
@@ -26,6 +29,7 @@ public abstract class Restaurant(string url,
         using var op = CreateTimedOperation(nameof(ImageWorkflow));
         var imageLink = await GetImageLinkFromUrl() ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
         var imageBytes = await GetImageBytesFromLink(imageLink);
+        AddExtraImageExtractInstructions();
         var offersJson = await ExtractOffersFromImage(imageBytes, imageLink) ?? throw new Exception("Failed to extract offers from image.");
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
@@ -42,6 +46,11 @@ public abstract class Restaurant(string url,
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
         return offers;
+    }
+
+    protected virtual void AddExtraImageExtractInstructions()
+    {
+        this.ExtractInstructions.AddRange(this.ExtraInstructions);
     }
 
     protected virtual async Task<string> GetImageLinkFromUrl()
@@ -80,7 +89,7 @@ public abstract class Restaurant(string url,
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromImage), $"{imageBytes.Length} bytes", imageLink);
         var mimeType = Utils.StringUtils.GetMimeTypeFromFilePath(imageLink);
         InferenceProvider.AddImage(imageBytes, mimeType);
-        InferenceProvider.AddContent(PromptConstants.ExtractInstruction);
+        InferenceProvider.AddContent(string.Join(' ', ExtractInstructions));
         return await InferenceProvider.Inference();
     }
 

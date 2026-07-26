@@ -10,7 +10,7 @@ public class TimedOperation : IDisposable
     public ILogger Logger { get; }
     public long StartedAt { get; } = Stopwatch.GetTimestamp();
 
-    public TimedOperation(string messageTemplate, object[] args,  ILogger logger)
+    public TimedOperation(string messageTemplate, object[] args, ILogger logger)
     {
         MessageTemplate = messageTemplate;
         Args = args;
