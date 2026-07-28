@@ -1,5 +1,6 @@
 using System.Text.Json;
 using debmenu.Logging;
+using debmenu.Caching;
 using debmenu.Providers.Inference;
 using debmenu.Utils;
 using Serilog;
@@ -10,7 +11,9 @@ public abstract class Restaurant(string url,
     IHttpClientFactory httpClientFactory,
     IInferenceProvider inferenceProvider,
     ILogger logger,
-    List<string> extraInstructions) : IRestaurant
+    List<string> extraInstructions,
+    IHttpResourceStateStore stateStore,
+    IRestaurantResultCache resultCache) : IRestaurant
 {
     public required string Url { get; init; } = url;
     public required IHttpClientFactory HttpClientFactory { get; init; } = httpClientFactory;
@@ -19,9 +22,89 @@ public abstract class Restaurant(string url,
     protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseExtractTask, PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
     protected List<string> ExtraInstructions { get; set; } = extraInstructions;
 
+    public InferenceResult? TotalInferenceCost { get; private set; }
+
+    private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+    private int _totalPromptTokens = 0;
+    private int _totalCandidatesTokens = 0;
+    private int _totalTokens = 0;
+
     public virtual async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
-        return await ImageWorkflow();
+        return await GetOffersWithCachingAsync(() => ImageWorkflow());
+    }
+
+    private async Task<bool> HasUrlChangedAsync()
+    {
+        HttpResourceState? stored;
+        try
+        {
+            stored = await stateStore.GetAsync(Url);
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning(ex, "[{Class}] Failed to read HTTP state for {Url}, assuming changed", GetType().Name, Url);
+            return true;
+        }
+
+        var httpClient = HttpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
+
+        string? etag, lastModified;
+        try
+        {
+            using var headResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, Url));
+            etag = headResponse.Headers.ETag?.ToString();
+            lastModified = headResponse.Content.Headers.LastModified?.ToString();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning(ex, "[{Class}] HEAD request failed for {Url}, assuming changed", GetType().Name, Url);
+            return true;
+        }
+
+        if (stored is not null && stored.ETag == etag && stored.LastModified == lastModified)
+            return false;
+
+        await stateStore.SetAsync(Url, new HttpResourceState(etag, lastModified));
+        return true;
+    }
+
+    protected async Task<Dictionary<string, List<string>>> GetOffersWithCachingAsync(Func<Task<Dictionary<string, List<string>>>> fetchWorkflow)
+    {
+        if (!await HasUrlChangedAsync())
+        {
+            var cached = await resultCache.GetAsync(GetType().Name);
+            if (cached is not null)
+            {
+                Logger.Information("[{Class}] Page unchanged, using cached offers", GetType().Name);
+                return cached;
+            }
+            Logger.Warning("[{Class}] Page unchanged but no cached offers available, fetching anyway", GetType().Name);
+        }
+
+        var offers = await fetchWorkflow();
+        await resultCache.SetAsync(GetType().Name, offers);
+        return offers;
+    }
+
+    protected void TrackInference(InferenceResult result)
+    {
+        _totalPromptTokens += result.PromptTokenCount;
+        _totalCandidatesTokens += result.CandidatesTokenCount;
+        _totalTokens += result.TotalTokenCount;
+        TotalInferenceCost = new InferenceResult(null, _totalPromptTokens, _totalCandidatesTokens, _totalTokens);
+    }
+
+    private void LogInferenceCost()
+    {
+        if (TotalInferenceCost is not null)
+            Logger.Information("[{Class}] Inference cost: {PromptTokenCount} prompt + {CandidatesTokenCount} response = {TotalTokenCount} total tokens",
+                GetType().Name,
+                TotalInferenceCost.PromptTokenCount,
+                TotalInferenceCost.CandidatesTokenCount,
+                TotalInferenceCost.TotalTokenCount);
     }
 
     protected async Task<Dictionary<string, List<string>>> ImageWorkflow()
@@ -34,6 +117,7 @@ public abstract class Restaurant(string url,
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
+        LogInferenceCost();
         return offers;
     }
 
@@ -45,6 +129,7 @@ public abstract class Restaurant(string url,
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
+        LogInferenceCost();
         return offers;
     }
 
@@ -65,7 +150,7 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetHtmlFromUrl), Url);
         var httpClient = HttpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
         return await httpClient.GetStringAsync(Url);
     }
 
@@ -73,7 +158,7 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetImageBytesFromLink), link);
         var httpClient = HttpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
         return await httpClient.GetByteArrayAsync(link);
     }
 
@@ -81,7 +166,9 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetImageLinkFromHtml), [$"{html.Length} bytes"]);
         InferenceProvider.AddContent($"{PromptConstants.ExtractImageLinkTask} {html}");
-        return await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference();
+        if (result is not null) TrackInference(result);
+        return result?.Text;
     }
 
     protected async Task<string?> ExtractOffersFromImage(byte[] imageBytes, string imageLink)
@@ -90,14 +177,18 @@ public abstract class Restaurant(string url,
         var mimeType = Utils.StringUtils.GetMimeTypeFromFilePath(imageLink);
         InferenceProvider.AddImage(imageBytes, mimeType);
         InferenceProvider.AddContent(string.Join(' ', ExtractInstructions));
-        return await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference();
+        if (result is not null) TrackInference(result);
+        return result?.Text;
     }
 
     protected async Task<string?> ExtractOffersFromHtml(string html)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromHtml), $"{html.Length} bytes");
         InferenceProvider.AddContent($"{PromptConstants.ExtractInstruction} {html}");
-        return await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference();
+        if (result is not null) TrackInference(result);
+        return result?.Text;
     }
 
     protected Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)

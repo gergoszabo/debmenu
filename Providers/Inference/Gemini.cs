@@ -40,7 +40,7 @@ public class Gemini : IInferenceProvider
         ContentParts.Add(imagePart);
     }
 
-    public async Task<string?> Inference()
+    public async Task<InferenceResult?> Inference()
     {
         var content = new Content
         {
@@ -68,6 +68,14 @@ public class Gemini : IInferenceProvider
             throw new Exception("No text content found in the response.");
         }
 
-        return textContent.Replace("```json", "").Replace("```", "").Trim();
+        var usage = response?.UsageMetadata;
+        var result = new InferenceResult(
+            textContent.Replace("```json", "").Replace("```", "").Trim(),
+            usage?.PromptTokenCount ?? 0,
+            usage?.CandidatesTokenCount ?? 0,
+            usage?.TotalTokenCount ?? 0
+        );
+
+        return result;
     }
 }

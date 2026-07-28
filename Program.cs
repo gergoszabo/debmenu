@@ -2,6 +2,7 @@
 
 using System.Reflection;
 using debmenu;
+using debmenu.Caching;
 using debmenu.Providers.Inference;
 using debmenu.Providers.Infrastructure;
 using debmenu.Restaurants;
@@ -45,6 +46,9 @@ try
     builder.Services.AddTransient<IInferenceProvider>(sp =>
         new CachedInferenceProvider(sp.GetRequiredKeyedService<IInferenceProvider>("gemini"), sp.GetRequiredService<ILogger>())
     );
+
+    builder.Services.AddSingleton<IHttpResourceStateStore, FileHttpResourceStateStore>();
+    builder.Services.AddSingleton<IRestaurantResultCache, FileRestaurantResultCache>();
 
     builder.Services.AddTransient<IRestaurant, Forest>();
     builder.Services.AddTransient<IRestaurant, Viktoria>();
