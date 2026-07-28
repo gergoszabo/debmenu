@@ -1,3 +1,4 @@
+using debmenu.Caching;
 using debmenu.Providers.Inference;
 using Serilog;
 
@@ -6,12 +7,16 @@ namespace debmenu.Restaurants;
 public class Govinda(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
-    ILogger logger) : Restaurant(
+    ILogger logger,
+    IHttpResourceStateStore stateStore,
+    IRestaurantResultCache resultCache) : Restaurant(
         "https://www.govindadebrecen.hu/",
         httpClientFactory,
         inferenceProvider,
         logger,
-        [])
+        [],
+        stateStore,
+        resultCache)
 {
     protected override async Task<string> GetImageLinkFromUrl()
     {

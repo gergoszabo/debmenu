@@ -1,5 +1,6 @@
 using System.Text.Json;
 using debmenu.Logging;
+using debmenu.Caching;
 using debmenu.Providers.Inference;
 using debmenu.Utils;
 using Serilog;
@@ -10,7 +11,9 @@ public abstract class Restaurant(string url,
     IHttpClientFactory httpClientFactory,
     IInferenceProvider inferenceProvider,
     ILogger logger,
-    List<string> extraInstructions) : IRestaurant
+    List<string> extraInstructions,
+    IHttpResourceStateStore stateStore,
+    IRestaurantResultCache resultCache) : IRestaurant
 {
     public required string Url { get; init; } = url;
     public required IHttpClientFactory HttpClientFactory { get; init; } = httpClientFactory;
@@ -21,13 +24,69 @@ public abstract class Restaurant(string url,
 
     public InferenceResult? TotalInferenceCost { get; private set; }
 
-    private int _totalPromptTokens;
-    private int _totalCandidatesTokens;
-    private int _totalTokens;
+    private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+    private int _totalPromptTokens = 0;
+    private int _totalCandidatesTokens = 0;
+    private int _totalTokens = 0;
 
     public virtual async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
-        return await ImageWorkflow();
+        return await GetOffersWithCachingAsync(() => ImageWorkflow());
+    }
+
+    private async Task<bool> HasUrlChangedAsync()
+    {
+        HttpResourceState? stored;
+        try
+        {
+            stored = await stateStore.GetAsync(Url);
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning(ex, "[{Class}] Failed to read HTTP state for {Url}, assuming changed", GetType().Name, Url);
+            return true;
+        }
+
+        var httpClient = HttpClientFactory.CreateClient();
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
+
+        string? etag, lastModified;
+        try
+        {
+            using var headResponse = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, Url));
+            etag = headResponse.Headers.ETag?.ToString();
+            lastModified = headResponse.Content.Headers.LastModified?.ToString();
+        }
+        catch (Exception ex)
+        {
+            Logger.Warning(ex, "[{Class}] HEAD request failed for {Url}, assuming changed", GetType().Name, Url);
+            return true;
+        }
+
+        if (stored is not null && stored.ETag == etag && stored.LastModified == lastModified)
+            return false;
+
+        await stateStore.SetAsync(Url, new HttpResourceState(etag, lastModified));
+        return true;
+    }
+
+    protected async Task<Dictionary<string, List<string>>> GetOffersWithCachingAsync(Func<Task<Dictionary<string, List<string>>>> fetchWorkflow)
+    {
+        if (!await HasUrlChangedAsync())
+        {
+            var cached = await resultCache.GetAsync(GetType().Name);
+            if (cached is not null)
+            {
+                Logger.Information("[{Class}] Page unchanged, using cached offers", GetType().Name);
+                return cached;
+            }
+            Logger.Warning("[{Class}] Page unchanged but no cached offers available, fetching anyway", GetType().Name);
+        }
+
+        var offers = await fetchWorkflow();
+        await resultCache.SetAsync(GetType().Name, offers);
+        return offers;
     }
 
     protected void TrackInference(InferenceResult result)
@@ -91,7 +150,7 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetHtmlFromUrl), Url);
         var httpClient = HttpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
         return await httpClient.GetStringAsync(Url);
     }
 
@@ -99,7 +158,7 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetImageBytesFromLink), link);
         var httpClient = HttpClientFactory.CreateClient();
-        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+        httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
         return await httpClient.GetByteArrayAsync(link);
     }
 
