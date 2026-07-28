@@ -19,9 +19,33 @@ public abstract class Restaurant(string url,
     protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseExtractTask, PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
     protected List<string> ExtraInstructions { get; set; } = extraInstructions;
 
+    public InferenceResult? TotalInferenceCost { get; private set; }
+
+    private int _totalPromptTokens;
+    private int _totalCandidatesTokens;
+    private int _totalTokens;
+
     public virtual async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
         return await ImageWorkflow();
+    }
+
+    protected void TrackInference(InferenceResult result)
+    {
+        _totalPromptTokens += result.PromptTokenCount;
+        _totalCandidatesTokens += result.CandidatesTokenCount;
+        _totalTokens += result.TotalTokenCount;
+        TotalInferenceCost = new InferenceResult(null, _totalPromptTokens, _totalCandidatesTokens, _totalTokens);
+    }
+
+    private void LogInferenceCost()
+    {
+        if (TotalInferenceCost is not null)
+            Logger.Information("[{Class}] Inference cost: {PromptTokenCount} prompt + {CandidatesTokenCount} response = {TotalTokenCount} total tokens",
+                GetType().Name,
+                TotalInferenceCost.PromptTokenCount,
+                TotalInferenceCost.CandidatesTokenCount,
+                TotalInferenceCost.TotalTokenCount);
     }
 
     protected async Task<Dictionary<string, List<string>>> ImageWorkflow()
@@ -34,6 +58,7 @@ public abstract class Restaurant(string url,
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
+        LogInferenceCost();
         return offers;
     }
 
@@ -45,6 +70,7 @@ public abstract class Restaurant(string url,
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
+        LogInferenceCost();
         return offers;
     }
 
@@ -81,7 +107,9 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetImageLinkFromHtml), [$"{html.Length} bytes"]);
         InferenceProvider.AddContent($"{PromptConstants.ExtractImageLinkTask} {html}");
-        return await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference();
+        if (result is not null) TrackInference(result);
+        return result?.Text;
     }
 
     protected async Task<string?> ExtractOffersFromImage(byte[] imageBytes, string imageLink)
@@ -90,14 +118,18 @@ public abstract class Restaurant(string url,
         var mimeType = Utils.StringUtils.GetMimeTypeFromFilePath(imageLink);
         InferenceProvider.AddImage(imageBytes, mimeType);
         InferenceProvider.AddContent(string.Join(' ', ExtractInstructions));
-        return await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference();
+        if (result is not null) TrackInference(result);
+        return result?.Text;
     }
 
     protected async Task<string?> ExtractOffersFromHtml(string html)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromHtml), $"{html.Length} bytes");
         InferenceProvider.AddContent($"{PromptConstants.ExtractInstruction} {html}");
-        return await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference();
+        if (result is not null) TrackInference(result);
+        return result?.Text;
     }
 
     protected Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)

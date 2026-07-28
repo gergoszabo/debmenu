@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using debmenu.Logging;
 using Serilog;
 
@@ -25,7 +26,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
         InferenceProvider.AddImage(imageBytes, fileName);
     }
 
-    public async Task<string?> Inference()
+    public async Task<InferenceResult?> Inference()
     {
         using var op = new TimedOperation("CachedInferenceProvider Inference", [], Logger);
 
@@ -56,12 +57,16 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
         if (File.Exists(cacheFileName))
         {
-            return await File.ReadAllTextAsync(cacheFileName);
+            var cached = JsonSerializer.Deserialize<InferenceResult>(await File.ReadAllTextAsync(cacheFileName));
+            if (cached is not null)
+                return cached with { PromptTokenCount = 0, CandidatesTokenCount = 0, TotalTokenCount = 0 };
+            return cached;
         }
 
         var result = await InferenceProvider.Inference();
 
-        await File.WriteAllTextAsync(cacheFileName, result);
+        var json = JsonSerializer.Serialize(result);
+        await File.WriteAllTextAsync(cacheFileName, json);
 
         return result;
     }
