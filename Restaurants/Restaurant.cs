@@ -121,11 +121,11 @@ public abstract class Restaurant(string url,
         return offers;
     }
 
-    protected async Task<Dictionary<string, List<string>>> HtmlWorkflow()
+    protected async Task<Dictionary<string, List<string>>> TextWorkflow()
     {
-        using var op = CreateTimedOperation(nameof(HtmlWorkflow));
-        var html = await GetHtmlFromUrl();
-        var offersJson = await ExtractOffersFromHtml(html) ?? throw new Exception("Failed to extract offers from page");
+        using var op = CreateTimedOperation(nameof(TextWorkflow));
+        var textContent = await GetContentFromUrl();
+        var offersJson = await ExtractOffersFromText(textContent) ?? throw new Exception("Failed to extract offers from page");
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
@@ -135,20 +135,20 @@ public abstract class Restaurant(string url,
 
     protected virtual void AddExtraImageExtractInstructions()
     {
-        this.ExtractInstructions.AddRange(this.ExtraInstructions);
+        ExtractInstructions.AddRange(ExtraInstructions);
     }
 
     protected virtual async Task<string> GetImageLinkFromUrl()
     {
         using var _ = CreateTimedOperation(nameof(GetImageLinkFromUrl));
-        var html = await GetHtmlFromUrl();
+        var html = await GetContentFromUrl();
         var imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
         return imageLink;
     }
 
-    protected async Task<string> GetHtmlFromUrl()
+    protected async Task<string> GetContentFromUrl()
     {
-        using var _ = CreateTimedOperation(nameof(GetHtmlFromUrl), Url);
+        using var _ = CreateTimedOperation(nameof(GetContentFromUrl), Url);
         var httpClient = HttpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Add("User-Agent", UserAgent);
         return await httpClient.GetStringAsync(Url);
@@ -182,16 +182,16 @@ public abstract class Restaurant(string url,
         return result?.Text;
     }
 
-    protected async Task<string?> ExtractOffersFromHtml(string html)
+    protected virtual async Task<string?> ExtractOffersFromText(string html)
     {
-        using var _ = CreateTimedOperation(nameof(ExtractOffersFromHtml), $"{html.Length} bytes");
+        using var _ = CreateTimedOperation(nameof(ExtractOffersFromText), $"{html.Length} bytes");
         InferenceProvider.AddContent($"{PromptConstants.ExtractInstruction} {html}");
         var result = await InferenceProvider.Inference();
         if (result is not null) TrackInference(result);
         return result?.Text;
     }
 
-    protected Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)
+    protected virtual Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)
     {
         using var _ = CreateTimedOperation(nameof(ParseInferenceResponseAsOffers), json.Length);
         return JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new Exception("Unable to parse json");

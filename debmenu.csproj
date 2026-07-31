@@ -6,10 +6,9 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>8a320d62-29ba-4e31-94b6-977aec1d0233</UserSecretsId>
-    <Version>3.1.0</Version>
+    <Version>3.2.0</Version>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>true</SelfContained>
-    <!-- <RuntimeIdentifier>linux-x64</RuntimeIdentifier> -->
   </PropertyGroup>
 
   <ItemGroup>
