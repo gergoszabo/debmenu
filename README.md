@@ -36,12 +36,6 @@ With this little application, no need to try open many sites in a hurry, the dai
 -   AWS credentials (for S3 uploads)
 -   Google Gemini API key
 
-### Installation
-
-```bash
-npm install
-```
-
 ### Configuration
 
 Set up the following environment variables:

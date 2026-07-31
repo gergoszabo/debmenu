@@ -1,14 +1,9 @@
-namespace debmenu.Utils;
-
-public static class Html
-{
-    public static string Template => @"
 <!DOCTYPE html>
-<html lang=""hu"">
+<html lang="hu">
 <head>
-    <meta charset=""UTF-8"">
+    <meta charset="UTF-8">
     <title>DebMenu VVV</title>
-    <meta name=""viewport"" content=""width=device-width,initial-scale=1""/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
     <style>
         body { font-family: sans-serif; background: black; padding: 20px; color: white; }
         .container { max-width: 800px; margin: 0 auto; background: black; color: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
@@ -23,34 +18,34 @@ public static class Html
 </head>
 <body>
 
-<div class=""container"">
+<div class="container">
     <h1>Napi Menü</h1>
-    <div id=""nav"" class=""nav""></div>
-    <table id=""menuTable"">
+    <div id="nav" class="nav"></div>
+    <table id="menuTable">
         <thead>
             <tr>
                 <th>Étterem</th>
                 <th>Menü</th>
             </tr>
         </thead>
-        <tbody id=""menuBody""></tbody>
+        <tbody id="menuBody"></tbody>
     </table>
 </div>
 
 <script>
     // Configuration for restaurant URLs
     const restaurantLinks = {
-        ""Viktoria"": ""https://www.viktoriaetterem.hu/menu"",
-        ""Govinda"": ""https://www.govindadebrecen.hu/"",
-        ""Forest"": ""https://forestetterem.hu/"",
-        ""Huse"": ""https://husevendeglo.hu/napi-ajanlat/"",
-        ""Manna"": ""https://www.mannaetterem.hu/rendeles""
+        "Viktoria": "https://www.viktoriaetterem.hu/menu",
+        "Govinda": "https://www.govindadebrecen.hu/",
+        "Forest": "https://forestetterem.hu/",
+        "Huse": "https://husevendeglo.hu/napi-ajanlat/",
+        "Manna": "https://www.mannaetterem.hu/rendeles"
     };
     const data = JSON_HERE;
 
     function getRestaurantName(name) {
         if (restaurantLinks[name]) {
-            return `<a href=""${restaurantLinks[name]}"" target=""_blank"">${name}</a>`;
+            return `<a href="${restaurantLinks[name]}" target="_blank">${name}</a>`;
         }
         return name;
     }
@@ -90,5 +85,3 @@ public static class Html
 <footer>version VVV</footer>
 </body>
 </html>
-";
-}

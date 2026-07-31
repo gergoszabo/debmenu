@@ -22,7 +22,7 @@ public class Forest(
 {
     protected override async Task<string> GetImageLinkFromUrl()
     {
-        var html = await GetHtmlFromUrl();
+        var html = await GetContentFromUrl();
         html = html[html.IndexOf("Heti étlap")..];
         html = html[..(html.IndexOf(".jpg\"") + 4)];
         html = html[html.IndexOf("http://")..];

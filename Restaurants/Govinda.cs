@@ -21,7 +21,7 @@ public class Govinda(
     protected override async Task<string> GetImageLinkFromUrl()
     {
         using var op = CreateTimedOperation(nameof(GetImageLinkFromUrl));
-        var html = await GetHtmlFromUrl();
+        var html = await GetContentFromUrl();
         var imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
 
         return $"{Url}{imageLink}";

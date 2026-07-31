@@ -54,6 +54,7 @@ try
     builder.Services.AddTransient<IRestaurant, Viktoria>();
     builder.Services.AddTransient<IRestaurant, Huse>();
     builder.Services.AddTransient<IRestaurant, Govinda>();
+    builder.Services.AddTransient<IRestaurant, Manna>();
     builder.Services.AddSingleton<IDataCollector, DataCollector>();
     builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
 

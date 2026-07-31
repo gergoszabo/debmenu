@@ -1,7 +1,6 @@
 .DS_Store
 Cache
-*.html
+index.html
 bin
 obj
-!dotnet/Utils/template.html
 publish
