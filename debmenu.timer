@@ -8,7 +8,7 @@ OnCalendar=*-*-* 09:00:00 Europe/Budapest
 OnCalendar=*-*-* 10:00:00 Europe/Budapest
 OnCalendar=*-*-* 11:00:00 Europe/Budapest
 OnCalendar=*-*-* 11:30:00 Europe/Budapest
-OnCalendar=*-*-* 22:20:00 Europe/Budapest
+OnCalendar=*-*-* 22:30:00 Europe/Budapest
 
 # Ensures missed executions run if system was offline
 Persistent=true
