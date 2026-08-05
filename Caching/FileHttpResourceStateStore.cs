@@ -21,7 +21,7 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
 
         var state = states?.GetValueOrDefault(url);
         if (state is not null)
-            logger.Information("HTTP state found for {Url}", url);
+            logger.Information("HTTP state found for {Url}: {State}", url, state);
         else
             logger.Information("No HTTP state for {Url}", url);
 
@@ -31,6 +31,10 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
     public async Task SetAsync(string url, HttpResourceState state)
     {
         using var op = new TimedOperation("FileHttpResourceStateStore SetAsync", [url], logger);
+        if (state.ETag == null && state.LastModified == null) {
+            logger.Warning("HTTP state not saved for {Url}: Both ETag and LastModified were null, skipping cache update.", url);
+            return;
+        }
 
         Dictionary<string, HttpResourceState> states;
         if (File.Exists(FilePath))
