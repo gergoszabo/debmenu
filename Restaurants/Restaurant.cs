@@ -174,7 +174,7 @@ public abstract class Restaurant(string url,
     protected async Task<string?> ExtractOffersFromImage(byte[] imageBytes, string imageLink)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromImage), $"{imageBytes.Length} bytes", imageLink);
-        var mimeType = Utils.StringUtils.GetMimeTypeFromFilePath(imageLink);
+        var mimeType = StringUtils.GetMimeTypeFromFilePath(imageLink);
         InferenceProvider.AddImage(imageBytes, mimeType);
         InferenceProvider.AddContent(string.Join(' ', ExtractInstructions));
         var result = await InferenceProvider.Inference();
@@ -194,7 +194,35 @@ public abstract class Restaurant(string url,
     protected virtual Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)
     {
         using var _ = CreateTimedOperation(nameof(ParseInferenceResponseAsOffers), json.Length);
-        return JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new Exception("Unable to parse json");
+        var offers = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new Exception("Unable to parse json");
+        return FilterOutdatedOffers(offers);
+    }
+
+    protected virtual Dictionary<string, List<string>> FilterOutdatedOffers(Dictionary<string, List<string>> offers)
+    {
+        if (offers == null) throw new Exception("Unable to parse json");
+
+        // Calculate the start of the current calendar week (Monday 00:00:00 UTC).                                                                                                                           
+        // This assumes Monday is the first day of the week.                                                                                                                                                 
+        var now = DateTime.UtcNow;
+        var startOfWeek = now.Date.AddDays(-(now.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)now.DayOfWeek - 1));
+
+        // Filter out dates before the current calendar week.                                                                                                                                                
+        var filteredOffers = offers
+            .Where(kvp =>
+            {
+                if (DateTime.TryParse(kvp.Key, out var date))
+                {
+                    return date >= startOfWeek;
+                }
+                // If parsing fails, we might treat it as invalid and discard it, or keep it if robustness is key.                                                                                           
+                // Since the prompt implies structured data, let's assume valid YYYY-MM-DD format for keys.                                                                                                  
+                // For safety, I will only include keys that successfully parse to a date >= startOfWeek.                                                                                                    
+                return false;
+            })
+            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+        return filteredOffers;
     }
 
     protected TimedOperation CreateTimedOperation(string methodName, params object[] args)
