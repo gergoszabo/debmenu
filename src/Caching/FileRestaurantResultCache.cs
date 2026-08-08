@@ -4,9 +4,9 @@ using Serilog;
 
 namespace debmenu.Caching;
 
-public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
+public class FileRestaurantResultCache(ILogger logger, string cacheDir = "Cache") : IRestaurantResultCache
 {
-    private const string FilePath = "Cache/offers.json";
+    private string FilePath { get; } = Path.Combine(cacheDir, "offers.json");
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     public async Task<Dictionary<string, List<string>>?> GetAsync(string restaurantName)
@@ -45,8 +45,8 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
 
         all[restaurantName] = offers;
 
-        if (!Directory.Exists("Cache"))
-            Directory.CreateDirectory("Cache");
+        if (!Directory.Exists(Path.GetDirectoryName(FilePath)))
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
 
         var newJson = JsonSerializer.Serialize(all, JsonOptions);
         await File.WriteAllTextAsync(FilePath, newJson);

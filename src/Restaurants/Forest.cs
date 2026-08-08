@@ -1,9 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using debmenu.Caching;
 using debmenu.Providers.Inference;
 using Serilog;
 
 namespace debmenu.Restaurants;
 
+[method: SetsRequiredMembers]
 public class Forest(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using debmenu.Caching;
@@ -6,6 +7,7 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+[method: SetsRequiredMembers]
 public sealed class Manna(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,

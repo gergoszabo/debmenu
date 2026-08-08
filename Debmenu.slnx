@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/debmenu.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Debmenu.Tests/Debmenu.Tests.csproj" />
+  </Folder>
+</Solution>

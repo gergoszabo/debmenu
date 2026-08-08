@@ -2,4 +2,5 @@
 
 dotnet build
 dotnet publish
-cd ./bin/Release/net10.0/linux-x64/publish && ./debmenu
+cd ./src/bin/Release/net10.0/linux-x64/publish/ && ./debmenu
+

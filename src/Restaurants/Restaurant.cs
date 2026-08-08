@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using debmenu.Logging;
 using debmenu.Caching;
@@ -7,6 +8,7 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+[method: SetsRequiredMembers]
 public abstract class Restaurant(string url,
     IHttpClientFactory httpClientFactory,
     IInferenceProvider inferenceProvider,

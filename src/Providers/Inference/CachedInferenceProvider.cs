@@ -6,10 +6,11 @@ using Serilog;
 
 namespace debmenu.Providers.Inference;
 
-public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
+public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger, string cacheDir = "Cache") : IInferenceProvider
 {
     private IInferenceProvider InferenceProvider { get; } = inferenceProvider;
     private ILogger Logger { get; } = logger;
+    private string CacheDir { get; } = cacheDir;
 
     private List<string> StringContents { get; set; } = [];
     private List<Tuple<byte[], string>> ImageContents { get; set; } = [];
@@ -45,7 +46,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
         var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
 
-        var cacheFileName = $"Cache/{finalHash}";
+        var cacheFileName = Path.Combine(CacheDir, finalHash);
 
         if (!Directory.Exists(Path.GetDirectoryName(cacheFileName)))
         {

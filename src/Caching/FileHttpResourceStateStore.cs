@@ -4,9 +4,9 @@ using Serilog;
 
 namespace debmenu.Caching;
 
-public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStore
+public class FileHttpResourceStateStore(ILogger logger, string cacheDir = "Cache") : IHttpResourceStateStore
 {
-    private const string FilePath = "Cache/http-states.json";
+    private string FilePath { get; } = Path.Combine(cacheDir, "http-states.json");
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     public async Task<HttpResourceState?> GetAsync(string url)
@@ -49,8 +49,8 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
 
         states[url] = state;
 
-        if (!Directory.Exists("Cache"))
-            Directory.CreateDirectory("Cache");
+        if (!Directory.Exists(Path.GetDirectoryName(FilePath)))
+            Directory.CreateDirectory(Path.GetDirectoryName(FilePath)!);
 
         var newJson = JsonSerializer.Serialize(states, JsonOptions);
         await File.WriteAllTextAsync(FilePath, newJson);

@@ -11,7 +11,7 @@ public class DataCollector(
     private IEnumerable<IRestaurant> Restaurants { get; } = scrapers;
     private ILogger Logger { get; } = logger;
 
-    public async Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers()
+    public async Task<OffersCollection> CollectOffers()
     {
         using var op = new TimedOperation("DataCollector CollectOffers", [], Logger);
         var allOffers = new Dictionary<string, Dictionary<string, List<string>>>();
@@ -29,6 +29,7 @@ public class DataCollector(
                     totalPromptTokens += restaurant.TotalInferenceCost.PromptTokenCount;
                     totalCandidatesTokens += restaurant.TotalInferenceCost.CandidatesTokenCount;
                     totalTokens += restaurant.TotalInferenceCost.TotalTokenCount;
+                    allOffers[restaurant.GetType().Name]["_inference_cost"] = new List<string> { $"Prompt: {restaurant.TotalInferenceCost.PromptTokenCount}, Response: {restaurant.TotalInferenceCost.CandidatesTokenCount}, Total: {restaurant.TotalInferenceCost.TotalTokenCount}" };
                 }
             }
             catch (Exception ex)
@@ -40,6 +41,6 @@ public class DataCollector(
         Logger.Information("Total inference cost: {PromptTokenCount} prompt + {CandidatesTokenCount} response = {TotalTokenCount} total tokens",
             totalPromptTokens, totalCandidatesTokens, totalTokens);
 
-        return allOffers;
+        return new OffersCollection(allOffers, totalPromptTokens, totalCandidatesTokens, totalTokens);
     }
 }
