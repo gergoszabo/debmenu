@@ -68,13 +68,13 @@
         const body = document.getElementById('menuBody');
         body.innerHTML = '';
         for (const [resName, dates] of Object.entries(data)) {
-            if (dates[selectedDate]) {
-                const row = `<tr>
-                    <td>${getRestaurantName(resName)}</td>
-                    <td><ul>${dates[selectedDate].map(item => `<li>${item}</li>`).join('')}</ul></td>
-                </tr>`;
-                body.innerHTML += row;
-            }
+            const offers = dates[selectedDate];
+            const menuItems = offers ? offers.map(item => `<li>${item}</li>`).join('') : '<li>Nincs menü</li>';
+            const row = `<tr>
+                <td>${getRestaurantName(resName)}</td>
+                <td><ul>${menuItems}</ul></td>
+            </tr>`;
+            body.innerHTML += row;
         }
     }
 
