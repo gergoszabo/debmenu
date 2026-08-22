@@ -11,36 +11,23 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
     private IInferenceProvider InferenceProvider { get; } = inferenceProvider;
     private ILogger Logger { get; } = logger;
 
-    private List<string> StringContents { get; set; } = [];
-    private List<Tuple<byte[], string>> ImageContents { get; set; } = [];
-
-    public void AddContent(string content)
+    public async Task<InferenceResult?> Inference(string content)
     {
-        StringContents.Add(content);
-        InferenceProvider.AddContent(content);
+        return await Inference(content, [], string.Empty);
     }
 
-    public void AddImage(byte[] imageBytes, string fileName)
-    {
-        ImageContents.Add(new(imageBytes, fileName));
-        InferenceProvider.AddImage(imageBytes, fileName);
-    }
-
-    public async Task<InferenceResult?> Inference()
+    public async Task<InferenceResult?> Inference(string content, byte[] imageBytes, string mimeType)
     {
         using var op = new TimedOperation("CachedInferenceProvider Inference", [], Logger);
 
         List<byte> hashes = [];
 
-        foreach (var content in StringContents)
-        {
-            hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content)));
-        }
+        hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content)));
 
-        foreach (var content in ImageContents)
+        if (imageBytes.Length > 0 && !string.IsNullOrWhiteSpace(mimeType))
         {
-            hashes.AddRange(SHA1.HashData(content.Item1));
-            hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content.Item2)));
+            hashes.AddRange(SHA1.HashData(imageBytes));
+            hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(mimeType)));
         }
 
         var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
@@ -52,9 +39,6 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
             Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName)!);
         }
 
-        StringContents.Clear();
-        ImageContents.Clear();
-
         if (File.Exists(cacheFileName))
         {
             var cached = JsonSerializer.Deserialize<InferenceResult>(await File.ReadAllTextAsync(cacheFileName));
@@ -63,7 +47,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
             return cached;
         }
 
-        var result = await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference(content, imageBytes, mimeType);
 
         var json = JsonSerializer.Serialize(result);
         await File.WriteAllTextAsync(cacheFileName, json);

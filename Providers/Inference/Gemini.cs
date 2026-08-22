@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Util;
 using Google.GenAI;
 using Google.GenAI.Types;
 using Microsoft.Extensions.Options;
@@ -10,46 +9,38 @@ public class Gemini : IInferenceProvider
     private GeminiOptions Options { get; }
     private readonly Client client;
 
-    private readonly List<Part> ContentParts = [];
-
     public Gemini(IOptions<GeminiOptions> options)
     {
         Options = options.Value;
         client = new(apiKey: Options.ApiKey);
     }
 
-    public void AddContent(string content)
+    public async Task<InferenceResult?> Inference(string content)
     {
-        var textPart = new Part
-        {
-            Text = content
-        };
-        ContentParts.Add(textPart);
+        return await Inference(content, [], string.Empty);
     }
 
-    public void AddImage(byte[] imageBytes, string mimeType)
+    public async Task<InferenceResult?> Inference(string content, byte[] imageBytes, string mimeType)
     {
-        var imagePart = new Part
+        List<Part> parts = [new Part { Text = content }];
+        if (imageBytes.Length > 0 && !string.IsNullOrWhiteSpace(mimeType))
         {
-            InlineData = new()
+            parts.Add(new Part
             {
-                Data = imageBytes,
-                MimeType = mimeType
-            }
-        };
-        ContentParts.Add(imagePart);
-    }
-
-    public async Task<InferenceResult?> Inference()
-    {
-        var content = new Content
-        {
-            Parts = ContentParts
-        };
+                InlineData = new()
+                {
+                    Data = imageBytes,
+                    MimeType = mimeType
+                }
+            });
+        }
 
         var response = await client.Models.GenerateContentAsync(
             model: Options.Model,
-            contents: content,
+            contents: new Content
+            {
+                Parts = parts
+            },
             config: new GenerateContentConfig
             {
                 ThinkingConfig = new ThinkingConfig
@@ -58,8 +49,6 @@ public class Gemini : IInferenceProvider
                 }
             }
         );
-
-        ContentParts.Clear();
 
         var textContent = response?.Candidates?[0]?.Content?.Parts?[0].Text;
 

@@ -6,8 +6,13 @@ public static class PromptConstants
   Extract the image links for \"heti étlap\", \"heti menü\" or the single one with high fetch priority from this piece of html.
   Only return the links, nothing else.
 """;
-    public const string ResponseExtractTask = @"
+    public const string ResponseExtractTextTask = @"
 Extract the offers from the image grouped for each day 
+day without headers and pricing information. 
+it can happen that the daterange contains a typo.
+";
+    public const string ResponseExtractImageTask = @"
+Extract the offers grouped for each day 
 day without headers and pricing information. 
 it can happen that the daterange contains a typo.
 ";
@@ -31,9 +36,9 @@ The keys are ISO date strings, and the values are arrays of strings representing
 ";
 
     public static readonly string DateGrounding = $@"Dates are in the format YYYY-MM-DD.
-The current date is {DateTime.UtcNow:yyyy-MM-dd}.";
+The current date is {DateTime.UtcNow.Subtract(TimeSpan.FromDays(3)):yyyy-MM-dd}.";
 
     public static readonly string YearGrounding = $"The current year is {DateTime.UtcNow.Year}.";
 
-    public static readonly string ExtractInstruction = $"{ResponseExtractTask} {ResponseStructure} {DateGrounding} {YearGrounding}";
+    public static readonly string ExtractInstruction = $"{ResponseExtractImageTask} {ResponseStructure} {DateGrounding} {YearGrounding}";
 }

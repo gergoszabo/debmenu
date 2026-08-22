@@ -19,7 +19,7 @@ public abstract class Restaurant(string url,
     public required IHttpClientFactory HttpClientFactory { get; init; } = httpClientFactory;
     public required IInferenceProvider InferenceProvider { get; init; } = inferenceProvider;
     public required ILogger Logger { get; init; } = logger;
-    protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseExtractTask, PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
+    protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseExtractImageTask, PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
     protected List<string> ExtraInstructions { get; set; } = extraInstructions;
 
     public InferenceResult? TotalInferenceCost { get; private set; }
@@ -165,8 +165,7 @@ public abstract class Restaurant(string url,
     protected async Task<string?> GetImageLinkFromHtml(string html)
     {
         using var _ = CreateTimedOperation(nameof(GetImageLinkFromHtml), [$"{html.Length} bytes"]);
-        InferenceProvider.AddContent($"{PromptConstants.ExtractImageLinkTask} {html}");
-        var result = await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference($"{PromptConstants.ExtractImageLinkTask} {html}");
         if (result is not null) TrackInference(result);
         return result?.Text;
     }
@@ -175,9 +174,7 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromImage), $"{imageBytes.Length} bytes", imageLink);
         var mimeType = StringUtils.GetMimeTypeFromFilePath(imageLink);
-        InferenceProvider.AddImage(imageBytes, mimeType);
-        InferenceProvider.AddContent(string.Join(' ', ExtractInstructions));
-        var result = await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference(string.Join(' ', ExtractInstructions), imageBytes, mimeType);
         if (result is not null) TrackInference(result);
         return result?.Text;
     }
@@ -185,8 +182,7 @@ public abstract class Restaurant(string url,
     protected virtual async Task<string?> ExtractOffersFromText(string html)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromText), $"{html.Length} bytes");
-        InferenceProvider.AddContent($"{PromptConstants.ExtractInstruction} {html}");
-        var result = await InferenceProvider.Inference();
+        var result = await InferenceProvider.Inference($"{PromptConstants.ExtractInstruction} {html}");
         if (result is not null) TrackInference(result);
         return result?.Text;
     }

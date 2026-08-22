@@ -1,11 +1,13 @@
 ﻿// namespace debmenu;
 
 using System.Reflection;
+using System.Text.Json;
 using debmenu;
 using debmenu.Caching;
 using debmenu.Providers.Inference;
 using debmenu.Providers.Infrastructure;
 using debmenu.Restaurants;
+using debmenu.Utils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -57,10 +59,17 @@ try
     builder.Services.AddTransient<IRestaurant, Manna>();
     builder.Services.AddSingleton<IDataCollector, DataCollector>();
     builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
+    builder.Services.AddSingleton<LlamaCpp>();
 
     using IHost host = builder.Build();
 
-    await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
+    // await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
+    // await host.Services.GetRequiredService<LlamaCpp>().Inference("Hello");
+
+    var imageBytes = File.ReadAllBytes("huse.jpg");
+    var inferenceResult = await host.Services.GetRequiredService<LlamaCpp>().Inference(string.Empty, imageBytes, "image/jpg");
+
+    Console.WriteLine(JsonSerializer.Serialize(inferenceResult));
 }
 finally
 {
