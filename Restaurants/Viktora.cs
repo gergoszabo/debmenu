@@ -20,6 +20,7 @@ public class Viktoria(
 {
     public override async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
+        using var op = CreateTimedOperation(nameof(GetOffersAsync));
         return await GetOffersWithCachingAsync(() => TextWorkflow());
     }
 }

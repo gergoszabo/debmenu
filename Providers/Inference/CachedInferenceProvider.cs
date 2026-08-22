@@ -13,18 +13,20 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
     public async Task<InferenceResult?> Inference(string content)
     {
+        using var op = new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, nameof(Inference), string.Empty], Logger);
         return await Inference(content, [], string.Empty);
     }
 
     public async Task<InferenceResult?> Inference(string content, byte[] imageBytes, string mimeType)
     {
-        using var op = new TimedOperation("CachedInferenceProvider Inference", [], Logger);
+        using var op = new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, nameof(Inference), mimeType], Logger);
 
         List<byte> hashes = [];
 
         hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content)));
 
-        if (imageBytes.Length > 0 && !string.IsNullOrWhiteSpace(mimeType))
+        var hasImage = imageBytes.Length > 0 && !string.IsNullOrWhiteSpace(mimeType);
+        if (hasImage)
         {
             hashes.AddRange(SHA1.HashData(imageBytes));
             hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(mimeType)));
@@ -47,7 +49,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
             return cached;
         }
 
-        var result = await InferenceProvider.Inference(content, imageBytes, mimeType);
+        var result = await (hasImage ? InferenceProvider.Inference(content, imageBytes, mimeType) : InferenceProvider.Inference(content));
 
         var json = JsonSerializer.Serialize(result);
         await File.WriteAllTextAsync(cacheFileName, json);

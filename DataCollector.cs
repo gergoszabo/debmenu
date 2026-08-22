@@ -13,7 +13,7 @@ public class DataCollector(
 
     public async Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers()
     {
-        using var op = new TimedOperation("DataCollector CollectOffers", [], Logger);
+        using var op = new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, nameof(CollectOffers)], Logger);
         var allOffers = new Dictionary<string, Dictionary<string, List<string>>>();
         int totalPromptTokens = 0, totalCandidatesTokens = 0, totalTokens = 0;
 

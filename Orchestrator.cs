@@ -18,7 +18,7 @@ public class Orchestrator(IDataCollector dataCollector,
 
     public async Task RunAsync()
     {
-        using var op = new TimedOperation("Orchestrator RunAsync", [], Logger);
+        using var op = new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, nameof(RunAsync)], Logger);
 
         string? version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
@@ -32,6 +32,6 @@ public class Orchestrator(IDataCollector dataCollector,
 
         File.WriteAllText("index.html", htmlContent);
 
-        await InfrastructureProvider.Upload(htmlContent, "index.html");
+        // await InfrastructureProvider.Upload(htmlContent, "index.html");
     }
 }

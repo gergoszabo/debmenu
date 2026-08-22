@@ -24,11 +24,13 @@ public sealed class Manna(
 
     public override async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
+        using var op = CreateTimedOperation(nameof(GetOffersAsync));
         return await GetOffersWithCachingAsync(() => TextWorkflow());
     }
 
     protected override async Task<string?> ExtractOffersFromText(string html)
     {
+        using var op = CreateTimedOperation(nameof(ExtractOffersFromText));
         return await Task.FromResult(html);
     }
 

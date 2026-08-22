@@ -7,7 +7,7 @@ public static class PromptConstants
   Only return the links, nothing else.
 """;
     public const string ResponseExtractTextTask = @"
-Extract the offers from the image grouped for each day 
+Extract the offers grouped for each day 
 day without headers and pricing information. 
 it can happen that the daterange contains a typo.
 ";
@@ -22,11 +22,11 @@ Respond only with json.
 The structure should be like this:
 
 {
-  ""date"": [
+  ""date1"": [
     ""Offer 1"",
     ""Offer 2""
   ],
-  ""date"": [
+  ""date2"": [
     ""Offer 1"",
     ""Offer 2""
   ]

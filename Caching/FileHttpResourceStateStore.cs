@@ -11,7 +11,7 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
 
     public async Task<HttpResourceState?> GetAsync(string url)
     {
-        using var op = new TimedOperation("FileHttpResourceStateStore GetAsync", [url], logger);
+        using var op = new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, nameof(GetAsync), url], logger);
 
         if (!File.Exists(FilePath))
             return null;
@@ -21,18 +21,19 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
 
         var state = states?.GetValueOrDefault(url);
         if (state is not null)
-            logger.Information("HTTP state found for {Url}: {State}", url, state);
+            logger.Information("[{Class}] {Method} HTTP state found for {Url}: {State}", GetType().Name, nameof(GetAsync), url, state);
         else
-            logger.Information("No HTTP state for {Url}", url);
+            logger.Information("[{Class}] {Method} No HTTP state for {Url}", GetType().Name, nameof(GetAsync), url);
 
         return state;
     }
 
     public async Task SetAsync(string url, HttpResourceState state)
     {
-        using var op = new TimedOperation("FileHttpResourceStateStore SetAsync", [url], logger);
-        if (state.ETag == null && state.LastModified == null) {
-            logger.Warning("HTTP state not saved for {Url}: Both ETag and LastModified were null, skipping cache update.", url);
+        using var op = new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, nameof(SetAsync), url], logger);
+        if (state.ETag == null && state.LastModified == null)
+        {
+            logger.Warning("[{Class}] {Method} HTTP state not saved for {Url}: Both ETag and LastModified were null, skipping cache update.", GetType().Name, nameof(GetAsync), url);
             return;
         }
 
@@ -55,7 +56,7 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
         var newJson = JsonSerializer.Serialize(states, JsonOptions);
         await File.WriteAllTextAsync(FilePath, newJson);
 
-        logger.Information("HTTP state saved for {Url} (ETag: {Etag}, LastModified: {LastModified})",
-            url, state.ETag ?? "(none)", state.LastModified ?? "(none)");
+        logger.Information("{Class}] {Method} HTTP state saved for {Url} (ETag: {Etag}, LastModified: {LastModified})",
+            GetType().Name, nameof(GetAsync), url, state.ETag ?? "(none)", state.LastModified ?? "(none)");
     }
 }

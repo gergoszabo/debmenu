@@ -32,8 +32,11 @@ try
 
     builder.Services.AddSingleton(Log.Logger);
 
-    builder.Services.AddHttpClient();
-
+    // builder.Services.AddHttpClient();
+    builder.Services.AddHttpClient("LlamaCppClient", client =>
+    {
+        client.Timeout = TimeSpan.FromMinutes(10);
+    });
     builder.Services.AddOptions<GeminiOptions>()
         .Bind(builder.Configuration.GetSection("Gemini"))
         .ValidateDataAnnotations()
@@ -44,32 +47,33 @@ try
         .ValidateOnStart();
 
     builder.Services.AddTransient<IInfrastructureProvider, AWS>();
-    builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
+    builder.Services.AddKeyedTransient<IInferenceProvider, LlamaCpp>("llama");
+    //builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
     builder.Services.AddTransient<IInferenceProvider>(sp =>
-        new CachedInferenceProvider(sp.GetRequiredKeyedService<IInferenceProvider>("gemini"), sp.GetRequiredService<ILogger>())
+        new CachedInferenceProvider(sp.GetRequiredKeyedService<IInferenceProvider>("llama"), sp.GetRequiredService<ILogger>())
     );
 
     builder.Services.AddSingleton<IHttpResourceStateStore, FileHttpResourceStateStore>();
     builder.Services.AddSingleton<IRestaurantResultCache, FileRestaurantResultCache>();
 
-    builder.Services.AddTransient<IRestaurant, Forest>();
     builder.Services.AddTransient<IRestaurant, Viktoria>();
-    builder.Services.AddTransient<IRestaurant, Huse>();
-    builder.Services.AddTransient<IRestaurant, Govinda>();
-    builder.Services.AddTransient<IRestaurant, Manna>();
+    // builder.Services.AddTransient<IRestaurant, Huse>();
+    // builder.Services.AddTransient<IRestaurant, Govinda>();
+    // builder.Services.AddTransient<IRestaurant, Manna>();
+    // builder.Services.AddTransient<IRestaurant, Forest>();
     builder.Services.AddSingleton<IDataCollector, DataCollector>();
     builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
     builder.Services.AddSingleton<LlamaCpp>();
 
     using IHost host = builder.Build();
 
-    // await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
+    await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
     // await host.Services.GetRequiredService<LlamaCpp>().Inference("Hello");
 
-    var imageBytes = File.ReadAllBytes("huse.jpg");
-    var inferenceResult = await host.Services.GetRequiredService<LlamaCpp>().Inference(string.Empty, imageBytes, "image/jpg");
+    //var imageBytes = File.ReadAllBytes("huse.jpg");
+    //var inferenceResult = await host.Services.GetRequiredService<LlamaCpp>().Inference(string.Empty, imageBytes, "image/jpg");
 
-    Console.WriteLine(JsonSerializer.Serialize(inferenceResult));
+    //Console.WriteLine(JsonSerializer.Serialize(inferenceResult));
 }
 finally
 {
