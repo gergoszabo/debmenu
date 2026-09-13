@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: debmenu-config
+  namespace: default
+data:
+  ASPNETCORE_ENVIRONMENT: "Production"

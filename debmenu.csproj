@@ -6,9 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>8a320d62-29ba-4e31-94b6-977aec1d0233</UserSecretsId>
-    <Version>3.3.0</Version>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>true</SelfContained>
+    <Version>3.4.2</Version>
+    <DockerRegistry>registry.hp.gergoszabo.name/debmenu</DockerRegistry>
+    <K3sHost>gary@hp.gergoszabo.name</K3sHost>
+    <K3sDeployDir>~/infra/k3s/debmenu</K3sDeployDir>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,4 +32,31 @@
     </Content>
   </ItemGroup>
 
+  <Target Name="DockerBuild">
+    <Message Text="Building Docker image $(DockerRegistry):$(Version)..." Importance="high" />
+    <Exec Command="sudo docker build -t &quot;$(DockerRegistry):$(Version)&quot; ." />
+  </Target>
+
+  <Target Name="DockerPublish" DependsOnTargets="DockerBuild">
+    <Message Text="Pushing Docker image $(DockerRegistry):$(Version)..." Importance="high" />
+    <Exec Command="sudo docker push &quot;$(DockerRegistry):$(Version)&quot;" />
+  </Target>
+
+  <Target Name="PrepareManifests" DependsOnTargets="DockerPublish">
+    <Message Text="Updating image tags in manifests to version $(Version)..." Importance="high" />
+    
+    <!-- Option A: WSL / Linux environment (uses sed) -->
+    <Exec Command="sed 's/__VERSION__/$(Version)/g' K3S/debmenu-cron.template.yaml > K3S/debmenu-cron.yaml" />
+  </Target>
+
+  <Target Name="K3sDeploy" DependsOnTargets="PrepareManifests">
+    <Message Text="Creating remote deployment directory on $(K3sHost)..." Importance="high" />
+    <Exec Command="ssh $(K3sHost) &quot;mkdir -p $(K3sDeployDir)&quot;" />
+
+    <Message Text="Copying YAML manifests to $(K3sHost)..." Importance="high" />
+    <Exec Command="scp K3S/debmenu-cron.yaml $(K3sHost):$(K3sDeployDir)/" />
+
+    <Message Text="Applying Kubernetes manifests on $(K3sHost)..." Importance="high" />
+    <Exec Command="ssh $(K3sHost) &quot;kubectl apply -f $(K3sDeployDir)/&quot;" />
+</Target>
 </Project>

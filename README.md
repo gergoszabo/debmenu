@@ -38,12 +38,27 @@ With this little application, no need to try open many sites in a hurry, the dai
 
 ### Configuration
 
-Set up the following environment variables:
+Set up the following configuration settings via `dotnet user-secrets` (development) or environment variables / Kubernetes secrets (production):
 
-`dotnet user-secrets init` - initialize secret store on pc
-`dotnet user-secrets set "Gemini:ApiKey" "KEY"` - Google Gemini API key
-`dotnet user-secrets set "AWS:SecretAccessKeyId" "KEY"`- AWS access key ID
-`dotnet user-secrets set "AWS:SecretAccessKey" "KEY"` - AWS secret key
+| Configuration Key | Environment Variable | Description |
+|---|---|---|
+| `Gemini:ApiKey` | `Gemini__ApiKey` | Google Gemini API key (Required) |
+| `Gemini:Model` | `Gemini__Model` | Gemini model name (Optional, defaults to `gemini-3.1-flash-lite`) |
+| `AWS:SecretAccessKeyId` | `AWS__SecretAccessKeyId` | AWS access key ID (Required) |
+| `AWS:SecretAccessKey` | `AWS__SecretAccessKey` | AWS secret access key (Required) |
+| `AWS:Region` | `AWS__Region` | AWS region (Configured in `appsettings.json`, e.g. `eu-central-2`) |
+| `AWS:Bucket` | `AWS__Bucket` | AWS S3 bucket name (Configured in `appsettings.json`, e.g. `debmenuaws`) |
+
+#### Setting User Secrets locally
+
+```bash
+dotnet user-secrets init
+dotnet user-secrets set "Gemini:ApiKey" "<YOUR_GEMINI_API_KEY>"
+dotnet user-secrets set "AWS:SecretAccessKeyId" "<YOUR_AWS_ACCESS_KEY_ID>"
+dotnet user-secrets set "AWS:SecretAccessKey" "<YOUR_AWS_SECRET_ACCESS_KEY>"
+```
+
+Or update `K3S/debmenu-secrets.yaml` with proper values and apply via `kubectl apply -f K3S/debmenu-secrets.yaml`.
 
 ### Usage
 
@@ -51,16 +66,16 @@ Set up the following environment variables:
 # Run the scraper and generate menus
 dotnet run
 
-# Build for production
+# Build the project
 dotnet build
 
-# Deploy to on-premises server
+# Publish for Linux x64
 dotnet publish -o publish --os linux -a x64
 
-# Clean cache and results
-dotnet clean
+# Deploy to Kubernetes cluster (builds Docker image, prepares manifests, and applies to K3s)
+dotnet msbuild -t:K3sDeploy
 ```
 
-## Licence
+## License
 
-GOTO [LICENSE](./LICENSE)
+See [LICENSE](./LICENSE).
