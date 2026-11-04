@@ -1,0 +1,32 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: debmenu
+  namespace: default
+spec:
+  schedule: "0,30 8-11 * * *"
+  timeZone: "Europe/Budapest"
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 5
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: debmenu
+            image: registry.hp.gergoszabo.name/debmenu:__VERSION__
+            imagePullPolicy: Always
+            envFrom:
+            - configMapRef:
+                name: debmenu-config
+            - secretRef:
+                name: debmenu-app-secrets
+            volumeMounts:
+            - name: cache-volume
+              mountPath: /app/Cache
+          volumes:
+          - name: cache-volume
+            persistentVolumeClaim:
+              claimName: debmenu-cache-pvc
+          restartPolicy: OnFailure

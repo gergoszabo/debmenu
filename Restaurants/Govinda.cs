@@ -10,7 +10,7 @@ public class Govinda(
     ILogger logger,
     IHttpResourceStateStore stateStore,
     IRestaurantResultCache resultCache) : Restaurant(
-        "https://www.govindadebrecen.hu/",
+        "https://govindadebrecen.hu/heti-menu/",
         httpClientFactory,
         inferenceProvider,
         logger,
@@ -18,12 +18,8 @@ public class Govinda(
         stateStore,
         resultCache)
 {
-    protected override async Task<string> GetImageLinkFromUrl()
+    public override async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
-        using var op = CreateTimedOperation(nameof(GetImageLinkFromUrl));
-        var html = await GetContentFromUrl();
-        var imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
-
-        return $"{Url}{imageLink}";
+        return await GetOffersWithCachingAsync(() => TextWorkflow());
     }
 }
