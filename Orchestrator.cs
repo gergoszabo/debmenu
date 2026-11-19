@@ -12,19 +12,15 @@ public class Orchestrator(IDataCollector dataCollector,
     IInfrastructureProvider infrastructureProvider,
     ILogger logger) : IOrchestrator
 {
-    private IDataCollector DataCollector { get; } = dataCollector;
-    private IInfrastructureProvider InfrastructureProvider { get; } = infrastructureProvider;
-    private ILogger Logger { get; } = logger;
-
     public async Task RunAsync()
     {
-        using var op = new TimedOperation("[{Class}] RunAsync", [GetType().Name], Logger);
+        using var op = new TimedOperation("[{Class}] RunAsync", [GetType().Name], logger);
 
         string? version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?
             .InformationalVersion;
 
-        var offers = await DataCollector.CollectOffers();
+        var offers = await dataCollector.CollectOffers();
 
         var offersJson = JsonSerializer.Serialize(offers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
@@ -37,6 +33,6 @@ public class Orchestrator(IDataCollector dataCollector,
 
         File.WriteAllText("index.html", htmlContent);
 
-        await InfrastructureProvider.Upload(htmlContent, "index.html");
+        await infrastructureProvider.Upload(htmlContent, "index.html");
     }
 }

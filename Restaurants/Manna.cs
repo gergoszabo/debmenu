@@ -60,7 +60,7 @@ public sealed class Manna(
             }
         }
 
-        return offers;
+        return FilterOutdatedOffers(offers);
     }
 
     private sealed class MannaMenu

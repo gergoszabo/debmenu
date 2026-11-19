@@ -53,32 +53,43 @@ public class LlamaCpp : IInferenceProvider
         const int maxAttempts = 3;
         var delay = TimeSpan.FromSeconds(20);   // fixed, no backoff
         ChatResponse? body = null;
-        for (int attempt = 1; attempt <= maxAttempts; attempt++)
+        try
         {
-            try
+            for (int attempt = 1; attempt <= maxAttempts && body is null; attempt++)
             {
-                using var response = await _client.PostAsJsonAsync("/v1/chat/completions", request);
-                if (!response.IsSuccessStatusCode)
+                if (attempt > 1)
+                    await Task.Delay(delay);
+
+                try
                 {
-                    // Surface the server's error payload (e.g. auth, model-not-loaded, context overflow)
-                    // instead of a generic status code.
-                    var errorBody = await response.Content.ReadAsStringAsync();
-                    throw new HttpRequestException(
-                        $"llama.cpp request failed with {(int)response.StatusCode} ({response.StatusCode}): {errorBody}");
+                    using var response = await _client.PostAsJsonAsync("/v1/chat/completions", request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Surface the server's error payload (e.g. auth, model-not-loaded, context overflow)
+                        // instead of a generic status code.
+                        var errorBody = await response.Content.ReadAsStringAsync();
+                        throw new HttpRequestException(
+                            $"llama.cpp request failed with {(int)response.StatusCode} ({response.StatusCode}): {errorBody}");
+                    }
+
+                    body = await response.Content.ReadFromJsonAsync<ChatResponse>();
+                    if (body is null)
+                        throw new HttpRequestException("llama.cpp returned a success status but the JSON body could not be deserialized.");
                 }
-                body = await response.Content.ReadFromJsonAsync<ChatResponse>();
-                break;
-            }
-            catch (HttpRequestException) when (attempt < maxAttempts)
-            {
-                await Task.Delay(delay);
+                catch (HttpRequestException) when (attempt < maxAttempts)
+                {
+                    // Transient failure on a non-final attempt: back off and retry.
+                }
             }
         }
+        finally
+        {
+            _parts.Clear();
+        }
 
-        _parts.Clear();
-
+        // All attempts threw; rethrow the last failure so the caller sees the real cause.
         if (body is null)
-            throw new Exception("llama.cpp request failed after all attempts.");
+            throw new HttpRequestException("llama.cpp request failed after all attempts.");
 
         var text = body.Choices?.FirstOrDefault()?.Message?.Content;
         if (string.IsNullOrEmpty(text))

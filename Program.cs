@@ -26,9 +26,6 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     builder.Services.AddSerilog();
-
-    builder.Logging.AddSerilog();
-
     builder.Services.AddSingleton(Log.Logger);
 
     builder.Services.AddHttpClient();

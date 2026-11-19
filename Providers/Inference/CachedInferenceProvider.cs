@@ -8,15 +8,12 @@ namespace debmenu.Providers.Inference;
 
 public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
 {
-    private IInferenceProvider InferenceProvider { get; } = inferenceProvider;
-    private ILogger Logger { get; } = logger;
-
     /// <inheritdoc/>
-    public string ProviderIdentity => InferenceProvider.ProviderIdentity;
+    public string ProviderIdentity => inferenceProvider.ProviderIdentity;
 
     // Namespaces the cache directory per provider/model so results produced by one backend
     // are never served for a different one (e.g. after switching between Gemini and llama.cpp).
-    private string CacheNamespace => InferenceProvider.ProviderIdentity;
+    private string CacheNamespace => inferenceProvider.ProviderIdentity;
 
     private readonly List<string> _stringContents = [];
     private readonly List<Tuple<byte[], string>> _imageContents = [];
@@ -38,12 +35,12 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
     {
         _stringContents.Clear();
         _imageContents.Clear();
-        InferenceProvider.Reset();
+        inferenceProvider.Reset();
     }
 
     public async Task<InferenceResult?> Inference()
     {
-        using var op = new TimedOperation("[{Class}] Inference", [GetType().Name], Logger);
+        using var op = new TimedOperation("[{Class}] Inference", [GetType().Name], logger);
 
         List<byte> hashes = [];
 
@@ -74,22 +71,23 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
             // provider to make sure nothing leaks into a later inference.
             _stringContents.Clear();
             _imageContents.Clear();
-            InferenceProvider.Reset();
+            inferenceProvider.Reset();
 
-            var cached = JsonSerializer.Deserialize<InferenceResult>(await File.ReadAllTextAsync(cacheFileName));
-            if (cached is not null)
-                return cached with { PromptTokenCount = 0, CandidatesTokenCount = 0, TotalTokenCount = 0 };
-            return cached;
+            var cachedJson = await File.ReadAllTextAsync(cacheFileName);
+            var cached = JsonSerializer.Deserialize<InferenceResult>(cachedJson)
+                ?? throw new InvalidOperationException(
+                    $"Cache file '{cacheFileName}' could not be deserialized; it may be corrupt or truncated. Delete it to re-infer.");
+            return cached with { PromptTokenCount = 0, CandidatesTokenCount = 0, TotalTokenCount = 0 };
         }
 
         // Cache miss: forward the accumulated parts to the wrapped provider only now that we
         // know a real inference is happening, then run it.
         foreach (var content in _stringContents)
-            InferenceProvider.AddContent(content);
+            inferenceProvider.AddContent(content);
         foreach (var content in _imageContents)
-            InferenceProvider.AddImage(content.Item1, content.Item2);
+            inferenceProvider.AddImage(content.Item1, content.Item2);
 
-        var result = await InferenceProvider.Inference();
+        var result = await inferenceProvider.Inference();
 
         // The wrapped provider cleared its own buffer inside Inference(); drop our local copy too.
         _stringContents.Clear();

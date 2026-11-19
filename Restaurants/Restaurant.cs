@@ -116,10 +116,10 @@ public abstract class Restaurant(string url,
     protected async Task<Dictionary<string, List<string>>> ImageWorkflow()
     {
         using var op = CreateTimedOperation(nameof(ImageWorkflow));
-        var imageLink = await GetImageLinkFromUrl() ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
+        var imageLink = await GetImageLinkFromUrl() ?? throw new OfferExtractionException("Failed to extract image link from HTML.");
         var imageBytes = await GetImageBytesFromLink(imageLink);
-        AddExtraImageExtractInstructions();
-        var offersJson = await ExtractOffersFromImage(imageBytes, imageLink) ?? throw new Exception("Failed to extract offers from image.");
+        var offersJson = await ExtractOffersFromImage(imageBytes, imageLink, BuildImageExtractInstructions())
+            ?? throw new OfferExtractionException("Failed to extract offers from image.");
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
@@ -131,7 +131,7 @@ public abstract class Restaurant(string url,
     {
         using var op = CreateTimedOperation(nameof(TextWorkflow));
         var textContent = await GetContentFromUrl();
-        var offersJson = await ExtractOffersFromText(textContent) ?? throw new Exception("Failed to extract offers from page");
+        var offersJson = await ExtractOffersFromText(textContent) ?? throw new OfferExtractionException("Failed to extract offers from page.");
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
@@ -139,17 +139,20 @@ public abstract class Restaurant(string url,
         return offers;
     }
 
-    protected virtual void AddExtraImageExtractInstructions()
+    /// <summary>
+    /// Builds the full image extraction instruction list without mutating shared state,
+    /// so repeated image workflows on the same instance don't duplicate instructions.
+    /// </summary>
+    protected virtual List<string> BuildImageExtractInstructions()
     {
-        ExtractInstructions.Insert(0, ExtractTask);
-        ExtractInstructions.AddRange(ExtraInstructions);
+        return [ExtractTask, .. ExtractInstructions, .. ExtraInstructions];
     }
 
     protected virtual async Task<string> GetImageLinkFromUrl()
     {
         using var _ = CreateTimedOperation(nameof(GetImageLinkFromUrl));
         var html = await GetContentFromUrl();
-        var imageLink = await GetImageLinkFromHtml(html) ?? throw new ArgumentNullException("Failed to extract image link from HTML.");
+        var imageLink = await GetImageLinkFromHtml(html) ?? throw new OfferExtractionException("Failed to extract image link from HTML.");
         return imageLink;
     }
 
@@ -178,12 +181,12 @@ public abstract class Restaurant(string url,
         return result?.Text;
     }
 
-    protected async Task<string?> ExtractOffersFromImage(byte[] imageBytes, string imageLink)
+    protected async Task<string?> ExtractOffersFromImage(byte[] imageBytes, string imageLink, List<string> extractInstructions)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromImage), $"{imageBytes.Length} bytes", imageLink);
         var mimeType = StringUtils.GetMimeTypeFromFilePath(imageLink);
         InferenceProvider.AddImage(imageBytes, mimeType);
-        InferenceProvider.AddContent(string.Join(' ', ExtractInstructions));
+        InferenceProvider.AddContent(string.Join(' ', extractInstructions));
         var result = await InferenceProvider.Inference();
         if (result is not null) TrackInference(result);
         return result?.Text;
@@ -201,13 +204,13 @@ public abstract class Restaurant(string url,
     protected virtual Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)
     {
         using var _ = CreateTimedOperation(nameof(ParseInferenceResponseAsOffers), json.Length);
-        var offers = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new Exception("Unable to parse json");
+        var offers = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new OfferExtractionException("Unable to parse offers from inference response.");
         return FilterOutdatedOffers(offers);
     }
 
     protected virtual Dictionary<string, List<string>> FilterOutdatedOffers(Dictionary<string, List<string>> offers)
     {
-        if (offers == null) throw new Exception("Unable to parse json");
+        if (offers is null) throw new ArgumentNullException(nameof(offers));
 
         // Calculate the start of the current calendar week (Monday 00:00:00 UTC).                                                                                                                           
         // This assumes Monday is the first day of the week.                                                                                                                                                 

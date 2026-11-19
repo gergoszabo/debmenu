@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace debmenu.Providers.Inference;
 
-public class Gemini : IInferenceProvider
+public class Gemini : IInferenceProvider, IDisposable
 {
     private GeminiOptions Options { get; }
     private readonly Client client;
@@ -45,6 +45,11 @@ public class Gemini : IInferenceProvider
 
     /// <inheritdoc/>
     public void Reset() => ContentParts.Clear();
+
+    public void Dispose()
+    {
+        client.Dispose();
+    }
 
     public async Task<InferenceResult?> Inference()
     {
