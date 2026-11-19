@@ -2,20 +2,21 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using debmenu.Logging;
-using Microsoft.Extensions.Options;
 using Serilog;
 
 namespace debmenu.Providers.Inference;
 
-public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger,
-    IOptions<GeminiOptions> geminiOptions, IOptions<LlamaCppOptions> llamaCppOptions) : IInferenceProvider
+public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
 {
     private IInferenceProvider InferenceProvider { get; } = inferenceProvider;
     private ILogger Logger { get; } = logger;
 
+    /// <inheritdoc/>
+    public string ProviderIdentity => InferenceProvider.ProviderIdentity;
+
     // Namespaces the cache directory per provider/model so results produced by one backend
     // are never served for a different one (e.g. after switching between Gemini and llama.cpp).
-    private string CacheNamespace { get; } = GetCacheNamespace(geminiOptions.Value, llamaCppOptions.Value);
+    private string CacheNamespace => InferenceProvider.ProviderIdentity;
 
     private readonly List<string> _stringContents = [];
     private readonly List<Tuple<byte[], string>> _imageContents = [];
@@ -59,7 +60,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
         var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
 
-        var cacheFileName = Path.Combine("Cache", CacheNamespace, finalHash);
+        var cacheFileName = Path.Combine("Cache", CacheNamespace.Replace('/', '_'), finalHash);
 
         var cacheDir = Path.GetDirectoryName(cacheFileName)!;
         if (!Directory.Exists(cacheDir))
@@ -98,16 +99,5 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
         await File.WriteAllTextAsync(cacheFileName, json);
 
         return result;
-    }
-
-    private static string GetCacheNamespace(GeminiOptions gemini, LlamaCppOptions llamaCpp)
-    {
-        // Both option sets are always bound in Program.cs; include whichever is configured.
-        var parts = new List<string>();
-        if (!string.IsNullOrWhiteSpace(gemini.ApiKey))
-            parts.Add($"gemini/{gemini.Model}");
-        if (!string.IsNullOrWhiteSpace(llamaCpp.BaseUrl))
-            parts.Add($"llamacpp/{llamaCpp.Model}");
-        return string.Join('-', parts);
     }
 }

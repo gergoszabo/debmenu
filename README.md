@@ -44,7 +44,7 @@ Set up the following configuration settings via `dotnet user-secrets` (developme
 
 | Configuration Key | Environment Variable | Description |
 |---|---|---|
-| `Inference:Provider` | `Inference__Provider` | Inference backend: `gemini` (code default) or `llamacpp`. Selects which provider is bound and validated at startup |
+| `Inference:Provider` | `Inference__Provider` | Inference backend: `llamacpp` (default, set in `appsettings.json`) or `gemini`. Selects which provider is validated at startup |
 | `Gemini:ApiKey` | `Gemini__ApiKey` | Google Gemini API key (Required when `Inference:Provider` = `gemini`) |
 | `Gemini:Model` | `Gemini__Model` | Gemini model name (Optional, defaults to `gemini-3.1-flash-lite`) |
 | `LlamaCpp:BaseUrl` | `LlamaCpp__BaseUrl` | llama.cpp-compatible server base URL (Required when `Inference:Provider` = `llamacpp`) |

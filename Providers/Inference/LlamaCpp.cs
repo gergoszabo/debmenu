@@ -20,6 +20,9 @@ public class LlamaCpp : IInferenceProvider
             new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
     }
 
+    /// <inheritdoc/>
+    public string ProviderIdentity => $"llamacpp/{_options.Model}";
+
     public void AddContent(string content) => _parts.Add(new Part { Type = "text", Text = content });
 
     public void AddImage(byte[] imageBytes, string mimeType) => _parts.Add(new Part

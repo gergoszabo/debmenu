@@ -33,19 +33,22 @@ try
 
     builder.Services.AddHttpClient();
 
-    var provider = (builder.Configuration.GetValue("Inference:Provider", "gemini") ?? "gemini").ToLowerInvariant();
+    var provider = (builder.Configuration.GetValue("Inference:Provider", "llamacpp") ?? "llamacpp").ToLowerInvariant();
+
+    // Both option sets are always bound so CachedInferenceProvider can read them, but only the
+    // selected provider's options carry validation attributes — that's what ValidateOnStart checks.
+    builder.Services.AddOptions<GeminiOptions>().Bind(builder.Configuration.GetSection("Gemini"));
+    builder.Services.AddOptions<LlamaCppOptions>().Bind(builder.Configuration.GetSection("LlamaCpp"));
 
     switch (provider)
     {
         case "llamacpp":
             builder.Services.AddOptions<LlamaCppOptions>()
-                .Bind(builder.Configuration.GetSection("LlamaCpp"))
                 .ValidateDataAnnotations().ValidateOnStart();
             builder.Services.AddKeyedTransient<IInferenceProvider, LlamaCpp>("llamacpp");
             break;
         default:
             builder.Services.AddOptions<GeminiOptions>()
-                .Bind(builder.Configuration.GetSection("Gemini"))
                 .ValidateDataAnnotations().ValidateOnStart();
             builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
             break;
@@ -60,9 +63,7 @@ try
     builder.Services.AddTransient<IInferenceProvider>(sp =>
         new CachedInferenceProvider(
             sp.GetRequiredKeyedService<IInferenceProvider>(provider),
-            sp.GetRequiredService<ILogger>(),
-            sp.GetRequiredService<IOptions<GeminiOptions>>(),
-            sp.GetRequiredService<IOptions<LlamaCppOptions>>())
+            sp.GetRequiredService<ILogger>())
     );
 
     builder.Services.AddSingleton<IHttpResourceStateStore, FileHttpResourceStateStore>();

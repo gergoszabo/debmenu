@@ -12,6 +12,9 @@ public class Gemini : IInferenceProvider
 
     private readonly List<Part> ContentParts = [];
 
+    /// <inheritdoc/>
+    public string ProviderIdentity => $"gemini/{Options.Model}";
+
     public Gemini(IOptions<GeminiOptions> options)
     {
         Options = options.Value;
