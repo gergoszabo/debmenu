@@ -18,7 +18,7 @@ public class Orchestrator(IDataCollector dataCollector,
 
     public async Task RunAsync()
     {
-        using var op = new TimedOperation("Orchestrator RunAsync", [], Logger);
+        using var op = new TimedOperation("[{Class}] RunAsync", [GetType().Name], Logger);
 
         string? version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?

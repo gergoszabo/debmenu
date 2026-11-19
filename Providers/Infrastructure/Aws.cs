@@ -16,7 +16,7 @@ public class AWS(IOptions<AWSOptions> options, ILogger logger) : IInfrastructure
 
     public async Task Upload(string content, string fileName)
     {
-        using var op = new TimedOperation("AWS Upload {fileName}", [fileName], Logger);
+        using var op = new TimedOperation("[{Class}] Upload {fileName}", [GetType().Name, fileName], Logger);
         var regionEndpoint = RegionEndpoint.EnumerableAllRegions.Single(region => region.SystemName == AwsOptions.Region);
         var s3Client = new AmazonS3Client(new BasicAWSCredentials(AwsOptions.SecretAccessKeyId, AwsOptions.SecretAccessKey), regionEndpoint);
 

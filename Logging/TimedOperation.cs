@@ -20,6 +20,6 @@ public class TimedOperation : IDisposable
 
     public void Dispose()
     {
-        Logger.Information($"{MessageTemplate} took {Stopwatch.GetElapsedTime(StartedAt).TotalMilliseconds} ms", Args);
+        Logger.Information($"{MessageTemplate} took {Stopwatch.GetElapsedTime(StartedAt)}", Args);
     }
 }
