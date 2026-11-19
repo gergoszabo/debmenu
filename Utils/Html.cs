@@ -87,7 +87,7 @@ public static class Html
     render(allDates.includes(today) ? today : allDates[allDates.length - 1]);
 </script>
 
-<footer>version VVV</footer>
+<footer>version VVV<br/>generated at GENERATED_AT</footer>
 </body>
 </html>
 ";

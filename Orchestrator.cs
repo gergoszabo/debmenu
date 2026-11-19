@@ -28,7 +28,12 @@ public class Orchestrator(IDataCollector dataCollector,
 
         var offersJson = JsonSerializer.Serialize(offers, new JsonSerializerOptions { WriteIndented = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
 
-        var htmlContent = Html.Template.Replace("JSON_HERE", offersJson).Replace("VVV", version);
+        var generatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
+
+        var htmlContent = Html.Template
+            .Replace("JSON_HERE", offersJson)
+            .Replace("VVV", version)
+            .Replace("GENERATED_AT", generatedAt);
 
         File.WriteAllText("index.html", htmlContent);
 

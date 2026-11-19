@@ -40,6 +40,9 @@ public class Gemini : IInferenceProvider
         ContentParts.Add(imagePart);
     }
 
+    /// <inheritdoc/>
+    public void Reset() => ContentParts.Clear();
+
     public async Task<InferenceResult?> Inference()
     {
         var content = new Content

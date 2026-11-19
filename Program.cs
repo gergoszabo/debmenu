@@ -8,6 +8,7 @@ using debmenu.Providers.Infrastructure;
 using debmenu.Restaurants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -59,7 +60,9 @@ try
     builder.Services.AddTransient<IInferenceProvider>(sp =>
         new CachedInferenceProvider(
             sp.GetRequiredKeyedService<IInferenceProvider>(provider),
-            sp.GetRequiredService<ILogger>())
+            sp.GetRequiredService<ILogger>(),
+            sp.GetRequiredService<IOptions<GeminiOptions>>(),
+            sp.GetRequiredService<IOptions<LlamaCppOptions>>())
     );
 
     builder.Services.AddSingleton<IHttpResourceStateStore, FileHttpResourceStateStore>();

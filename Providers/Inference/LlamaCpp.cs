@@ -29,6 +29,9 @@ public class LlamaCpp : IInferenceProvider
         ImageUrl = new() { Url = $"data:{mimeType};base64,{Convert.ToBase64String(imageBytes)}" }
     });
 
+    /// <inheritdoc/>
+    public void Reset() => _parts.Clear();
+
     public async Task<InferenceResult?> Inference()
     {
         var request = new ChatRequest
@@ -48,16 +51,23 @@ public class LlamaCpp : IInferenceProvider
         const int maxAttempts = 3;
         var delay = TimeSpan.FromSeconds(20);   // fixed, no backoff
         ChatResponse? body = null;
-        for (int attempt = 1; ; attempt++)
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
             try
             {
                 using var response = await _client.PostAsJsonAsync("/v1/chat/completions", request);
-                response.EnsureSuccessStatusCode();
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Surface the server's error payload (e.g. auth, model-not-loaded, context overflow)
+                    // instead of a generic status code.
+                    var errorBody = await response.Content.ReadAsStringAsync();
+                    throw new HttpRequestException(
+                        $"llama.cpp request failed with {(int)response.StatusCode} ({response.StatusCode}): {errorBody}");
+                }
                 body = await response.Content.ReadFromJsonAsync<ChatResponse>();
                 break;
             }
-            catch when (attempt < maxAttempts)
+            catch (HttpRequestException) when (attempt < maxAttempts)
             {
                 await Task.Delay(delay);
             }
