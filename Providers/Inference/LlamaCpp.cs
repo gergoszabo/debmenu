@@ -16,9 +16,8 @@ public class LlamaCpp : IInferenceProvider
         _client = httpClientFactory.CreateClient();
         _client.BaseAddress = new Uri(_options.BaseUrl);
         _client.Timeout = TimeSpan.FromMinutes(5);   // 27B model can be slow; speed is not a concern
-        if (!string.IsNullOrEmpty(_options.ApiKey))
-            _client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
     }
 
     public void AddContent(string content) => _parts.Add(new Part { Type = "text", Text = content });

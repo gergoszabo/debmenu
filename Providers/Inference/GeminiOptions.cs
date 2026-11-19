@@ -4,7 +4,9 @@ namespace debmenu.Providers.Inference;
 
 public class GeminiOptions
 {
-    // [Required(AllowEmptyStrings = false, ErrorMessage = "Gemini API Key is missing or empty in configuration.")]
+    [Required(AllowEmptyStrings = false, ErrorMessage = "Gemini API Key is missing or empty in configuration.")]
     public required string ApiKey { get; set; } = string.Empty;
+
+    [Required(AllowEmptyStrings = false, ErrorMessage = "Gemini Model is missing or empty in configuration.")]
     public required string Model { get; set; } = "gemini-3.1-flash-lite";
 }

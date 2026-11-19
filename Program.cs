@@ -78,6 +78,10 @@ try
 
     using IHost host = builder.Build();
 
+    // Starts the options validation hosted services (ValidateOnStart) so missing/invalid
+    // configuration fails fast with a descriptive error before RunAsync.
+    await host.StartAsync();
+
     await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
 }
 finally

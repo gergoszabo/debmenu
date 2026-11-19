@@ -4,7 +4,10 @@ namespace debmenu.Providers.Inference;
 
 public class LlamaCppOptions
 {
+    [Required(AllowEmptyStrings = false, ErrorMessage = "LlamaCpp BaseUrl is missing or empty in configuration.")]
     public required string BaseUrl { get; set; }
+
+    [Required(AllowEmptyStrings = false, ErrorMessage = "LlamaCpp Model is missing or empty in configuration.")]
     public required string Model { get; set; }
     public double Temperature { get; set; }
     public double TopP { get; set; }
@@ -13,5 +16,6 @@ public class LlamaCppOptions
     public double PresencePenalty { get; set; }
     public double RepetitionPenalty { get; set; }
     public int? MaxTokens { get; set; }
+    [Required(AllowEmptyStrings = false, ErrorMessage = "LlamaCpp ApiKey is missing or empty in configuration.")]
     public required string ApiKey { get; set; }
 }
