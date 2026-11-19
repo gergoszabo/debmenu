@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="debmenu.csproj" />
+  <Project Path="debmenu.Tests/debmenu.Tests.csproj" />
+</Solution>

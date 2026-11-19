@@ -6,28 +6,35 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>8a320d62-29ba-4e31-94b6-977aec1d0233</UserSecretsId>
-    <Version>3.13</Version>
+    <Version>3.14</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Tools/**" />
     <Content Remove="Tools/**" />
     <None Remove="Tools/**" />
+    <Compile Remove="debmenu.Tests/**" />
+    <EmbeddedResource Remove="debmenu.Tests/**" />
+    <None Remove="debmenu.Tests/**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Update="Resources\ErrorMessages.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
-      <StronglyTypedFileName>$(IntermediateOutputPath)$(Language)/$(MSBuildProjectName).ErrorMessages.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)$(MSBuildProjectName).ErrorMessages.Designer.cs</StronglyTypedFileName>
       <StronglyTypedLengthLimit>1000000</StronglyTypedLengthLimit>
     </EmbeddedResource>
     <EmbeddedResource Update="Resources\Html.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
-      <StronglyTypedFileName>$(IntermediateOutputPath)$(Language)/$(MSBuildProjectName).Html.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedFileName>$(IntermediateOutputPath)$(MSBuildProjectName).Html.Designer.cs</StronglyTypedFileName>
       <StronglyTypedLengthLimit>1000000</StronglyTypedLengthLimit>
     </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="debmenu.Tests" />
   </ItemGroup>
 
   <ItemGroup>

@@ -5,3 +5,4 @@ bin
 obj
 publish
 appsettings.development.json
+debmenu.Tests/TestResults
