@@ -45,7 +45,7 @@ public sealed class Manna(
         {
             if (product.ExpectedAt is null)
             {
-                Logger.Warning("Skipping {Name} because there is no ExpectedAt defined", product.Name);
+                logger.Warning("Skipping {Name} because there is no ExpectedAt defined", product.Name);
                 continue;
             }
 

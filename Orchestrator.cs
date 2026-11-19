@@ -8,10 +8,17 @@ using Serilog;
 
 namespace debmenu;
 
+/// <summary>
+/// Collects offers from all restaurants, renders them into a static HTML page and publishes it.
+/// </summary>
 public class Orchestrator(IDataCollector dataCollector,
     IInfrastructureProvider infrastructureProvider,
     ILogger logger) : IOrchestrator
 {
+    /// <summary>
+    /// Collects offers from all restaurants, renders the menu into an HTML page and uploads it to the infrastructure provider.
+    /// </summary>
+    /// <returns>A task representing the asynchronous operation.</returns>
     public async Task RunAsync()
     {
         using var op = new TimedOperation("[{Class}] RunAsync", [GetType().Name], logger);

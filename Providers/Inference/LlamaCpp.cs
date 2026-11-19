@@ -4,12 +4,20 @@ using Microsoft.Extensions.Options;
 
 namespace debmenu.Providers.Inference;
 
+/// <summary>
+/// Inference provider backed by a local llama.cpp server exposing an OpenAI-compatible API.
+/// </summary>
 public class LlamaCpp : IInferenceProvider
 {
     private readonly LlamaCppOptions _options;
     private readonly HttpClient _client;
     private readonly List<Part> _parts = [];
 
+    /// <summary>
+    /// Initializes a new instance with an HTTP client pointed at the llama.cpp server.
+    /// </summary>
+    /// <param name="options">llama.cpp settings (base URL, model, sampling parameters).</param>
+    /// <param name="httpClientFactory">Factory used to create the HTTP client.</param>
     public LlamaCpp(IOptions<LlamaCppOptions> options, IHttpClientFactory httpClientFactory)
     {
         _options = options.Value;
@@ -23,8 +31,17 @@ public class LlamaCpp : IInferenceProvider
     /// <inheritdoc/>
     public string ProviderIdentity => $"llamacpp/{_options.Model}";
 
+    /// <summary>
+    /// Buffers a text part to be included in the next inference call.
+    /// </summary>
+    /// <param name="content">The text content.</param>
     public void AddContent(string content) => _parts.Add(new Part { Type = "text", Text = content });
 
+    /// <summary>
+    /// Buffers an image part (base64 data URL) to be included in the next inference call.
+    /// </summary>
+    /// <param name="imageBytes">The raw image bytes.</param>
+    /// <param name="mimeType">The image MIME type, e.g. <c>image/png</c>.</param>
     public void AddImage(byte[] imageBytes, string mimeType) => _parts.Add(new Part
     {
         Type = "image_url",
@@ -34,6 +51,7 @@ public class LlamaCpp : IInferenceProvider
     /// <inheritdoc/>
     public void Reset() => _parts.Clear();
 
+    /// <inheritdoc/>
     public async Task<InferenceResult?> Inference()
     {
         var request = new ChatRequest

@@ -1,7 +1,13 @@
 namespace debmenu.Utils;
 
+/// <summary>
+/// Holds the HTML template used to render the final menu page.
+/// </summary>
 public static class Html
 {
+    /// <summary>
+    /// The full HTML page template. Placeholders: <c>VVV</c> (version), <c>JSON_HERE</c> (offers payload), <c>GENERATED_AT</c> (timestamp).
+    /// </summary>
     public static string Template => @"
 <!DOCTYPE html>
 <html lang=""hu"">

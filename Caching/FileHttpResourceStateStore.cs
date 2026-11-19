@@ -4,11 +4,15 @@ using Serilog;
 
 namespace debmenu.Caching;
 
+/// <summary>
+/// File-backed implementation of <see cref="IHttpResourceStateStore"/> that persists state as JSON.
+/// </summary>
 public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStore
 {
     private const string FilePath = "Cache/http-states.json";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
+    /// <inheritdoc/>
     public async Task<HttpResourceState?> GetAsync(string url)
     {
         using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, url], logger);
@@ -28,6 +32,7 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
         return state;
     }
 
+    /// <inheritdoc/>
     public async Task SetAsync(string url, HttpResourceState state)
     {
         using var op = new TimedOperation("[{Class}] SetAsync", [GetType().Name, url], logger);

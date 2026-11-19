@@ -6,6 +6,10 @@ using Serilog;
 
 namespace debmenu.Providers.Inference;
 
+/// <summary>
+/// Wraps another inference provider with a content-hash-based file cache so identical
+/// prompts/images do not re-invoke the model.
+/// </summary>
 public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
 {
     /// <inheritdoc/>
@@ -18,6 +22,10 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
     private readonly List<string> _stringContents = [];
     private readonly List<Tuple<byte[], string>> _imageContents = [];
 
+    /// <summary>
+    /// Buffers a text part for the next inference call (served from cache when possible).
+    /// </summary>
+    /// <param name="content">The text content.</param>
     public void AddContent(string content)
     {
         // Defer forwarding to the wrapped provider until Inference() actually needs it,
@@ -25,6 +33,11 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
         _stringContents.Add(content);
     }
 
+    /// <summary>
+    /// Buffers an image part for the next inference call (served from cache when possible).
+    /// </summary>
+    /// <param name="imageBytes">The raw image bytes.</param>
+    /// <param name="fileName">The file name, used to derive the MIME type and as a cache key component.</param>
     public void AddImage(byte[] imageBytes, string fileName)
     {
         _imageContents.Add(new(imageBytes, fileName));
@@ -38,6 +51,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
         inferenceProvider.Reset();
     }
 
+    /// <inheritdoc/>
     public async Task<InferenceResult?> Inference()
     {
         using var op = new TimedOperation("[{Class}] Inference", [GetType().Name], logger);

@@ -4,10 +4,17 @@ using Serilog;
 
 namespace debmenu;
 
+/// <summary>
+/// Aggregates menu offers from all registered restaurant scrapers.
+/// </summary>
 public class DataCollector(
     IEnumerable<IRestaurant> scrapers,
     ILogger logger) : IDataCollector
 {
+    /// <summary>
+    /// Collects menu offers from every registered scraper, tolerating individual failures.
+    /// </summary>
+    /// <returns>A dictionary mapping restaurant name to day-of-week to list of offer items.</returns>
     public async Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers()
     {
         using var op = new TimedOperation("[{Class}] CollectOffers", [GetType().Name], logger);
