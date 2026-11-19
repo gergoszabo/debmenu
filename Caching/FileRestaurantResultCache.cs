@@ -11,7 +11,7 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
 
     public async Task<Dictionary<string, List<string>>?> GetAsync(string restaurantName)
     {
-        using var op = new TimedOperation("FileRestaurantResultCache GetAsync", [restaurantName], logger);
+        using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, restaurantName], logger);
 
         if (!File.Exists(FilePath))
             return null;
@@ -21,16 +21,16 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
 
         var offers = all?.GetValueOrDefault(restaurantName);
         if (offers is not null)
-            logger.Information("Cache hit for {Restaurant}", restaurantName);
+            logger.Information("[{Class}] Cache hit for {Restaurant}", GetType().Name, restaurantName);
         else
-            logger.Information("Cache miss for {Restaurant}", restaurantName);
+            logger.Information("[{Class}] Cache miss for {Restaurant}", GetType().Name, restaurantName);
 
         return offers;
     }
 
     public async Task SetAsync(string restaurantName, Dictionary<string, List<string>> offers)
     {
-        using var op = new TimedOperation("FileRestaurantResultCache SetAsync", [restaurantName], logger);
+        using var op = new TimedOperation("[{Class}] SetAsync", [GetType().Name, restaurantName], logger);
 
         Dictionary<string, Dictionary<string, List<string>>> all;
         if (File.Exists(FilePath))
@@ -51,6 +51,6 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
         var newJson = JsonSerializer.Serialize(all, JsonOptions);
         await File.WriteAllTextAsync(FilePath, newJson);
 
-        logger.Information("Cached offers for {Restaurant} ({Count} days)", restaurantName, offers.Count);
+        logger.Information("[{Class}] Cached offers for {Restaurant} ({Count} days)", GetType().Name, restaurantName, offers.Count);
     }
 }

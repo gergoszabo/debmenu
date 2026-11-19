@@ -14,7 +14,10 @@ public class Huse(
         httpClientFactory,
         inferenceProvider,
         logger,
-        ["Make sure the extra offering 'Állandó ajánlatunk' gets added to every day"],
+        [
+            "Make sure the extra offering 'Állandó ajánlatunk' gets added to every day",
+            $"The menu image shows days like 'November 16.' without a year. This is the current week's menu: assign the current year ({DateTime.UtcNow.Year}) to every day so all dates fall within the current calendar week (today is {DateTime.UtcNow:yyyy-MM-dd}). Never output a year other than {DateTime.UtcNow.Year}."
+        ],
         stateStore,
         resultCache)
 {

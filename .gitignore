@@ -4,3 +4,4 @@ index.html
 bin
 obj
 publish
+appsettings.development.json

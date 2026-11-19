@@ -32,19 +32,34 @@ try
 
     builder.Services.AddHttpClient();
 
-    builder.Services.AddOptions<GeminiOptions>()
-        .Bind(builder.Configuration.GetSection("Gemini"))
-        .ValidateDataAnnotations()
-        .ValidateOnStart();
+    var provider = (builder.Configuration.GetValue("Inference:Provider", "gemini") ?? "gemini").ToLowerInvariant();
+
+    switch (provider)
+    {
+        case "llamacpp":
+            builder.Services.AddOptions<LlamaCppOptions>()
+                .Bind(builder.Configuration.GetSection("LlamaCpp"))
+                .ValidateDataAnnotations().ValidateOnStart();
+            builder.Services.AddKeyedTransient<IInferenceProvider, LlamaCpp>("llamacpp");
+            break;
+        default:
+            builder.Services.AddOptions<GeminiOptions>()
+                .Bind(builder.Configuration.GetSection("Gemini"))
+                .ValidateDataAnnotations().ValidateOnStart();
+            builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
+            break;
+    }
+
     builder.Services.AddOptions<AWSOptions>()
         .Bind(builder.Configuration.GetSection("AWS"))
         .ValidateDataAnnotations()
         .ValidateOnStart();
 
     builder.Services.AddTransient<IInfrastructureProvider, AWS>();
-    builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
     builder.Services.AddTransient<IInferenceProvider>(sp =>
-        new CachedInferenceProvider(sp.GetRequiredKeyedService<IInferenceProvider>("gemini"), sp.GetRequiredService<ILogger>())
+        new CachedInferenceProvider(
+            sp.GetRequiredKeyedService<IInferenceProvider>(provider),
+            sp.GetRequiredService<ILogger>())
     );
 
     builder.Services.AddSingleton<IHttpResourceStateStore, FileHttpResourceStateStore>();

@@ -19,7 +19,13 @@ public abstract class Restaurant(string url,
     public required IHttpClientFactory HttpClientFactory { get; init; } = httpClientFactory;
     public required IInferenceProvider InferenceProvider { get; init; } = inferenceProvider;
     public required ILogger Logger { get; init; } = logger;
-    protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseExtractTask, PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
+    /// <summary>
+    /// The extraction task instruction. Restaurants with unusual input formats (e.g. plain text
+    /// instead of raw HTML) can override this; the response structure and date grounding stay shared.
+    /// </summary>
+    protected virtual string ExtractTask => PromptConstants.ResponseExtractTask;
+
+    protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
     protected List<string> ExtraInstructions { get; set; } = extraInstructions;
 
     public InferenceResult? TotalInferenceCost { get; private set; }
@@ -135,6 +141,7 @@ public abstract class Restaurant(string url,
 
     protected virtual void AddExtraImageExtractInstructions()
     {
+        ExtractInstructions.Insert(0, ExtractTask);
         ExtractInstructions.AddRange(ExtraInstructions);
     }
 
@@ -146,7 +153,7 @@ public abstract class Restaurant(string url,
         return imageLink;
     }
 
-    protected async Task<string> GetContentFromUrl()
+    protected virtual async Task<string> GetContentFromUrl()
     {
         using var _ = CreateTimedOperation(nameof(GetContentFromUrl), Url);
         var httpClient = HttpClientFactory.CreateClient();
@@ -185,7 +192,7 @@ public abstract class Restaurant(string url,
     protected virtual async Task<string?> ExtractOffersFromText(string html)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromText), $"{html.Length} bytes");
-        InferenceProvider.AddContent($"{PromptConstants.ExtractInstruction} {html}");
+        InferenceProvider.AddContent($"{string.Join(' ', ExtractInstructions)} {html}");
         var result = await InferenceProvider.Inference();
         if (result is not null) TrackInference(result);
         return result?.Text;
