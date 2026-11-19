@@ -40,7 +40,7 @@ With this little application, no need to try open many sites in a hurry, the dai
 
 ### Configuration
 
-Set up the following configuration settings via `dotnet user-secrets` (development) or environment variables / Kubernetes secrets (production):
+Set up the following configuration settings via `dotnet user-secrets` (development) or environment variables (production):
 
 | Configuration Key | Environment Variable | Description |
 |---|---|---|
@@ -70,8 +70,6 @@ dotnet user-secrets set "AWS:SecretAccessKeyId" "<YOUR_AWS_ACCESS_KEY_ID>"
 dotnet user-secrets set "AWS:SecretAccessKey" "<YOUR_AWS_SECRET_ACCESS_KEY>"
 ```
 
-Or update `K3S/debmenu-secrets.yaml` with proper values and apply via `kubectl apply -f K3S/debmenu-secrets.yaml`.
-
 ### Usage
 
 ```bash
@@ -83,9 +81,6 @@ dotnet build
 
 # Publish for Linux x64
 dotnet publish -o publish --os linux -a x64
-
-# Deploy to Kubernetes cluster (builds Docker image, prepares manifests, and applies to K3s)
-dotnet msbuild -t:K3sDeploy
 ```
 
 ## License

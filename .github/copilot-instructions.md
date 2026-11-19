@@ -6,7 +6,7 @@ DebMenu is a **.NET 11 console application** (C#) that crawls restaurant menus i
 
 - **Purpose**: Automated daily menu aggregation for multiple restaurants
 - **Language / runtime**: C# on .NET 11 (`debmenu.csproj`, `TargetFramework` = `net11.0`)
-- **Shape**: A single console app that runs once per scheduled invocation (cron / Kubernetes) and exits
+- **Shape**: A single console app that runs once per scheduled invocation (e.g. cron) and exits
 - **Key services**: Pluggable AI inference (Google Gemini or a local llama.cpp server), AWS S3 for storage + static hosting
 
 ## Tech Stack & Dependencies
