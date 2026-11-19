@@ -13,6 +13,7 @@ namespace debmenu;
 /// </summary>
 public class Orchestrator(IDataCollector dataCollector,
     IInfrastructureProvider infrastructureProvider,
+    IPathProvider pathProvider,
     ILogger logger) : IOrchestrator
 {
     /// <summary>
@@ -34,12 +35,13 @@ public class Orchestrator(IDataCollector dataCollector,
         var generatedAt = DateTime.UtcNow.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
 
         var htmlContent = Html.Template
-            .Replace("JSON_HERE", offersJson)
-            .Replace("VVV", version)
-            .Replace("GENERATED_AT", generatedAt);
+            .Replace("__OFFERS_JSON__", offersJson)
+            .Replace("__VERSION__", version)
+            .Replace("__GENERATED_AT__", generatedAt);
 
-        File.WriteAllText("index.html", htmlContent);
+        var outputPath = pathProvider.Combine("index.html");
+        File.WriteAllText(outputPath, htmlContent);
 
-        await infrastructureProvider.Upload(htmlContent, "index.html");
+        await infrastructureProvider.Upload(htmlContent, Path.GetFileName(outputPath));
     }
 }

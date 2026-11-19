@@ -6,13 +6,28 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <UserSecretsId>8a320d62-29ba-4e31-94b6-977aec1d0233</UserSecretsId>
-    <Version>3.12</Version>
+    <Version>3.13</Version>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Tools/**" />
     <Content Remove="Tools/**" />
     <None Remove="Tools/**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resources\ErrorMessages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedFileName>$(IntermediateOutputPath)$(Language)/$(MSBuildProjectName).ErrorMessages.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLengthLimit>1000000</StronglyTypedLengthLimit>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\Html.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <StronglyTypedLanguage>CSharp</StronglyTypedLanguage>
+      <StronglyTypedFileName>$(IntermediateOutputPath)$(Language)/$(MSBuildProjectName).Html.Designer.cs</StronglyTypedFileName>
+      <StronglyTypedLengthLimit>1000000</StronglyTypedLengthLimit>
+    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>

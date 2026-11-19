@@ -96,7 +96,7 @@ public class Gemini : IInferenceProvider, IDisposable
 
         if (string.IsNullOrEmpty(textContent))
         {
-            throw new Exception("No text content found in the response.");
+            throw new Exception(debmenu_Resources_ErrorMessages.NoTextContentFoundInResponse);
         }
 
         var usage = response?.UsageMetadata;

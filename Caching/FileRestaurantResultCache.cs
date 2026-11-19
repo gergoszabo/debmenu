@@ -7,9 +7,8 @@ namespace debmenu.Caching;
 /// <summary>
 /// File-backed implementation of <see cref="IRestaurantResultCache"/> that persists offers as JSON.
 /// </summary>
-public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
+public class FileRestaurantResultCache(IPathProvider pathProvider, ILogger logger) : IRestaurantResultCache
 {
-    private const string FilePath = "Cache/offers.json";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     /// <inheritdoc/>
@@ -17,10 +16,11 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
     {
         using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, restaurantName], logger);
 
-        if (!File.Exists(FilePath))
+        var filePath = pathProvider.Combine("Cache", "offers.json");
+        if (!File.Exists(filePath))
             return null;
 
-        var json = await File.ReadAllTextAsync(FilePath);
+        var json = await File.ReadAllTextAsync(filePath);
         var all = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(json, JsonOptions);
 
         var offers = all?.GetValueOrDefault(restaurantName);
@@ -37,10 +37,11 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
     {
         using var op = new TimedOperation("[{Class}] SetAsync", [GetType().Name, restaurantName], logger);
 
+        var filePath = pathProvider.Combine("Cache", "offers.json");
         Dictionary<string, Dictionary<string, List<string>>> all;
-        if (File.Exists(FilePath))
+        if (File.Exists(filePath))
         {
-            var json = await File.ReadAllTextAsync(FilePath);
+            var json = await File.ReadAllTextAsync(filePath);
             all = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, List<string>>>>(json, JsonOptions) ?? [];
         }
         else
@@ -50,11 +51,12 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
 
         all[restaurantName] = offers;
 
-        if (!Directory.Exists("Cache"))
-            Directory.CreateDirectory("Cache");
+        var cacheDir = pathProvider.Combine("Cache");
+        if (!Directory.Exists(cacheDir))
+            Directory.CreateDirectory(cacheDir);
 
         var newJson = JsonSerializer.Serialize(all, JsonOptions);
-        await File.WriteAllTextAsync(FilePath, newJson);
+        await File.WriteAllTextAsync(filePath, newJson);
 
         logger.Information("[{Class}] Cached offers for {Restaurant} ({Count} days)", GetType().Name, restaurantName, offers.Count);
     }

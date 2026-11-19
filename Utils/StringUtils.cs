@@ -21,7 +21,7 @@ public static class StringUtils
             ".gif" => "image/gif",
             ".bmp" => "image/bmp",
             ".tiff" or ".tif" => "image/tiff",
-            _ => throw new NotSupportedException($"File extension '{extension}' is not supported.")
+            _ => throw new NotSupportedException(string.Format(debmenu_Resources_ErrorMessages.UnsupportedFileExtension, extension))
         };
     }
 }

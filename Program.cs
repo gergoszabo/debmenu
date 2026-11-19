@@ -29,6 +29,7 @@ try
     builder.Services.AddSingleton(Log.Logger);
 
     builder.Services.AddHttpClient();
+    builder.Services.AddSingleton<IPathProvider, FileSystemPathProvider>();
 
     var provider = (builder.Configuration.GetValue("Inference:Provider", "llamacpp") ?? "llamacpp").ToLowerInvariant();
 
@@ -60,6 +61,7 @@ try
     builder.Services.AddTransient<IInferenceProvider>(sp =>
         new CachedInferenceProvider(
             sp.GetRequiredKeyedService<IInferenceProvider>(provider),
+            sp.GetRequiredService<IPathProvider>(),
             sp.GetRequiredService<ILogger>())
     );
 

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="FailedToExtractImageLinkFromHtml" xml:space="preserve">
+    <value>Failed to extract image link from HTML.</value>
+  </data>
+  <data name="FailedToExtractOffersFromImage" xml:space="preserve">
+    <value>Failed to extract offers from image.</value>
+  </data>
+  <data name="FailedToExtractOffersFromPage" xml:space="preserve">
+    <value>Failed to extract offers from page.</value>
+  </data>
+  <data name="UnableToParseOffersFromInferenceResponse" xml:space="preserve">
+    <value>Unable to parse offers from inference response.</value>
+  </data>
+  <data name="MenuImageNotFound" xml:space="preserve">
+    <value>Menu image not found</value>
+  </data>
+  <data name="NoTextContentFoundInResponse" xml:space="preserve">
+    <value>No text content found in the response.</value>
+  </data>
+  <data name="UnsupportedFileExtension" xml:space="preserve">
+    <value>File extension '{0}' is not supported.</value>
+  </data>
+</root>

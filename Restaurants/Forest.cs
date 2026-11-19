@@ -24,7 +24,7 @@ public class Forest(
         var html = await GetContentFromUrl();
         html = html[html.IndexOf("Heti étlap")..];
         var srcIdx = html.IndexOf("src=\"/files/heti-etlap", StringComparison.OrdinalIgnoreCase);
-        if (srcIdx < 0) throw new Exception("Menu image not found");
+        if (srcIdx < 0) throw new OfferExtractionException(debmenu_Resources_ErrorMessages.MenuImageNotFound);
         html = html[(srcIdx + 5)..]; // skip 'src='
         var endIdx = html.IndexOf('"');
         var path = html[..endIdx];

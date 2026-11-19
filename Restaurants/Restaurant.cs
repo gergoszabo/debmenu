@@ -111,10 +111,10 @@ public abstract class Restaurant(string url,
     protected async Task<Dictionary<string, List<string>>> ImageWorkflow()
     {
         using var op = CreateTimedOperation(nameof(ImageWorkflow));
-        var imageLink = await GetImageLinkFromUrl() ?? throw new OfferExtractionException("Failed to extract image link from HTML.");
+        var imageLink = await GetImageLinkFromUrl() ?? throw new OfferExtractionException(debmenu_Resources_ErrorMessages.FailedToExtractImageLinkFromHtml);
         var imageBytes = await GetImageBytesFromLink(imageLink);
         var offersJson = await ExtractOffersFromImage(imageBytes, imageLink, BuildImageExtractInstructions())
-            ?? throw new OfferExtractionException("Failed to extract offers from image.");
+            ?? throw new OfferExtractionException(debmenu_Resources_ErrorMessages.FailedToExtractOffersFromImage);
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
@@ -126,7 +126,7 @@ public abstract class Restaurant(string url,
     {
         using var op = CreateTimedOperation(nameof(TextWorkflow));
         var textContent = await GetContentFromUrl();
-        var offersJson = await ExtractOffersFromText(textContent) ?? throw new OfferExtractionException("Failed to extract offers from page.");
+        var offersJson = await ExtractOffersFromText(textContent) ?? throw new OfferExtractionException(debmenu_Resources_ErrorMessages.FailedToExtractOffersFromPage);
 
         var offers = ParseInferenceResponseAsOffers(offersJson);
 
@@ -147,7 +147,7 @@ public abstract class Restaurant(string url,
     {
         using var _ = CreateTimedOperation(nameof(GetImageLinkFromUrl));
         var html = await GetContentFromUrl();
-        var imageLink = await GetImageLinkFromHtml(html) ?? throw new OfferExtractionException("Failed to extract image link from HTML.");
+        var imageLink = await GetImageLinkFromHtml(html) ?? throw new OfferExtractionException(debmenu_Resources_ErrorMessages.FailedToExtractImageLinkFromHtml);
         return imageLink;
     }
 
@@ -199,7 +199,7 @@ public abstract class Restaurant(string url,
     protected virtual Dictionary<string, List<string>> ParseInferenceResponseAsOffers(string json)
     {
         using var _ = CreateTimedOperation(nameof(ParseInferenceResponseAsOffers), json.Length);
-        var offers = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new OfferExtractionException("Unable to parse offers from inference response.");
+        var offers = JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) ?? throw new OfferExtractionException(debmenu_Resources_ErrorMessages.UnableToParseOffersFromInferenceResponse);
         return FilterOutdatedOffers(offers);
     }
 

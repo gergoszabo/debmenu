@@ -30,8 +30,14 @@ The structure should be like this:
 The keys are ISO date strings, and the values are arrays of strings representing the offers for that day.
 ";
 
-    public static readonly string DateGrounding = $@"Dates are in the format YYYY-MM-DD.
+    /// <summary>
+    /// Date grounding prompt, computed per call so a long-lived host never grounds to a stale date.
+    /// </summary>
+    public static string DateGrounding => $@"Dates are in the format YYYY-MM-DD.
 The current date is {DateTime.UtcNow:yyyy-MM-dd}.";
 
-    public static readonly string YearGrounding = $"The current year is {DateTime.UtcNow.Year}.";
+    /// <summary>
+    /// Year grounding prompt, computed per call so a long-lived host never grounds to a stale year.
+    /// </summary>
+    public static string YearGrounding => $"The current year is {DateTime.UtcNow.Year}.";
 }

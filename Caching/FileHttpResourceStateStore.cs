@@ -7,9 +7,8 @@ namespace debmenu.Caching;
 /// <summary>
 /// File-backed implementation of <see cref="IHttpResourceStateStore"/> that persists state as JSON.
 /// </summary>
-public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStore
+public class FileHttpResourceStateStore(IPathProvider pathProvider, ILogger logger) : IHttpResourceStateStore
 {
-    private const string FilePath = "Cache/http-states.json";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
     /// <inheritdoc/>
@@ -17,10 +16,11 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
     {
         using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, url], logger);
 
-        if (!File.Exists(FilePath))
+        var filePath = pathProvider.Combine("Cache", "http-states.json");
+        if (!File.Exists(filePath))
             return null;
 
-        var json = await File.ReadAllTextAsync(FilePath);
+        var json = await File.ReadAllTextAsync(filePath);
         var states = JsonSerializer.Deserialize<Dictionary<string, HttpResourceState>>(json, JsonOptions);
 
         var state = states?.GetValueOrDefault(url);
@@ -42,10 +42,11 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
             return;
         }
 
+        var filePath = pathProvider.Combine("Cache", "http-states.json");
         Dictionary<string, HttpResourceState> states;
-        if (File.Exists(FilePath))
+        if (File.Exists(filePath))
         {
-            var json = await File.ReadAllTextAsync(FilePath);
+            var json = await File.ReadAllTextAsync(filePath);
             states = JsonSerializer.Deserialize<Dictionary<string, HttpResourceState>>(json, JsonOptions) ?? [];
         }
         else
@@ -55,11 +56,12 @@ public class FileHttpResourceStateStore(ILogger logger) : IHttpResourceStateStor
 
         states[url] = state;
 
-        if (!Directory.Exists("Cache"))
-            Directory.CreateDirectory("Cache");
+        var cacheDir = pathProvider.Combine("Cache");
+        if (!Directory.Exists(cacheDir))
+            Directory.CreateDirectory(cacheDir);
 
         var newJson = JsonSerializer.Serialize(states, JsonOptions);
-        await File.WriteAllTextAsync(FilePath, newJson);
+        await File.WriteAllTextAsync(filePath, newJson);
 
         logger.Information("[{Class}] HTTP state saved for {Url} (ETag: {Etag}, LastModified: {LastModified})",
             GetType().Name, url, state.ETag ?? "(none)", state.LastModified ?? "(none)");

@@ -73,7 +73,7 @@ public class LlamaCpp : IInferenceProvider
         ChatResponse? body = null;
         try
         {
-            for (int attempt = 1; attempt <= maxAttempts && body is null; attempt++)
+            for (int attempt = 1; attempt <= maxAttempts; attempt++)
             {
                 if (attempt > 1)
                     await Task.Delay(delay);
@@ -93,6 +93,7 @@ public class LlamaCpp : IInferenceProvider
                     body = await response.Content.ReadFromJsonAsync<ChatResponse>();
                     if (body is null)
                         throw new HttpRequestException("llama.cpp returned a success status but the JSON body could not be deserialized.");
+                    break;
                 }
                 catch (HttpRequestException) when (attempt < maxAttempts)
                 {
@@ -111,7 +112,7 @@ public class LlamaCpp : IInferenceProvider
 
         var text = body.Choices?.FirstOrDefault()?.Message?.Content;
         if (string.IsNullOrEmpty(text))
-            throw new Exception("No text content found in the llama.cpp response.");
+            throw new Exception(debmenu_Resources_ErrorMessages.NoTextContentFoundInResponse);
 
         return new InferenceResult(
             text!.Replace("```json", "").Replace("```", "").Trim(),   // same cleanup Gemini does

@@ -10,7 +10,7 @@ namespace debmenu.Providers.Inference;
 /// Wraps another inference provider with a content-hash-based file cache so identical
 /// prompts/images do not re-invoke the model.
 /// </summary>
-public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
+public class CachedInferenceProvider(IInferenceProvider inferenceProvider, IPathProvider pathProvider, ILogger logger) : IInferenceProvider
 {
     /// <inheritdoc/>
     public string ProviderIdentity => inferenceProvider.ProviderIdentity;
@@ -71,7 +71,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
         var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
 
-        var cacheFileName = Path.Combine("Cache", CacheNamespace.Replace('/', '_'), finalHash);
+        var cacheFileName = pathProvider.Combine("Cache", CacheNamespace.Replace('/', '_'), finalHash);
 
         var cacheDir = Path.GetDirectoryName(cacheFileName)!;
         if (!Directory.Exists(cacheDir))
