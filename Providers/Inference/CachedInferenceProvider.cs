@@ -6,38 +6,64 @@ using Serilog;
 
 namespace debmenu.Providers.Inference;
 
+/// <summary>
+/// Wraps another inference provider with a content-hash-based file cache so identical
+/// prompts/images do not re-invoke the model.
+/// </summary>
 public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogger logger) : IInferenceProvider
 {
-    private IInferenceProvider InferenceProvider { get; } = inferenceProvider;
-    private ILogger Logger { get; } = logger;
+    /// <inheritdoc/>
+    public string ProviderIdentity => inferenceProvider.ProviderIdentity;
 
-    private List<string> StringContents { get; set; } = [];
-    private List<Tuple<byte[], string>> ImageContents { get; set; } = [];
+    // Namespaces the cache directory per provider/model so results produced by one backend
+    // are never served for a different one (e.g. after switching between Gemini and llama.cpp).
+    private string CacheNamespace => inferenceProvider.ProviderIdentity;
 
+    private readonly List<string> _stringContents = [];
+    private readonly List<Tuple<byte[], string>> _imageContents = [];
+
+    /// <summary>
+    /// Buffers a text part for the next inference call (served from cache when possible).
+    /// </summary>
+    /// <param name="content">The text content.</param>
     public void AddContent(string content)
     {
-        StringContents.Add(content);
-        InferenceProvider.AddContent(content);
+        // Defer forwarding to the wrapped provider until Inference() actually needs it,
+        // so a cache hit never leaves stale parts buffered in the real provider.
+        _stringContents.Add(content);
     }
 
+    /// <summary>
+    /// Buffers an image part for the next inference call (served from cache when possible).
+    /// </summary>
+    /// <param name="imageBytes">The raw image bytes.</param>
+    /// <param name="fileName">The file name, used to derive the MIME type and as a cache key component.</param>
     public void AddImage(byte[] imageBytes, string fileName)
     {
-        ImageContents.Add(new(imageBytes, fileName));
-        InferenceProvider.AddImage(imageBytes, fileName);
+        _imageContents.Add(new(imageBytes, fileName));
     }
 
+    /// <inheritdoc/>
+    public void Reset()
+    {
+        _stringContents.Clear();
+        _imageContents.Clear();
+        inferenceProvider.Reset();
+    }
+
+    /// <inheritdoc/>
     public async Task<InferenceResult?> Inference()
     {
-        using var op = new TimedOperation("[{Class}] Inference", [GetType().Name], Logger);
+        using var op = new TimedOperation("[{Class}] Inference", [GetType().Name], logger);
 
         List<byte> hashes = [];
 
-        foreach (var content in StringContents)
+        foreach (var content in _stringContents)
         {
             hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content)));
         }
 
-        foreach (var content in ImageContents)
+        foreach (var content in _imageContents)
         {
             hashes.AddRange(SHA1.HashData(content.Item1));
             hashes.AddRange(SHA1.HashData(Encoding.UTF8.GetBytes(content.Item2)));
@@ -45,25 +71,41 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, ILogg
 
         var finalHash = Convert.ToHexString(SHA1.HashData([.. hashes]));
 
-        var cacheFileName = $"Cache/{finalHash}";
+        var cacheFileName = Path.Combine("Cache", CacheNamespace.Replace('/', '_'), finalHash);
 
-        if (!Directory.Exists(Path.GetDirectoryName(cacheFileName)))
+        var cacheDir = Path.GetDirectoryName(cacheFileName)!;
+        if (!Directory.Exists(cacheDir))
         {
-            Directory.CreateDirectory(Path.GetDirectoryName(cacheFileName)!);
+            Directory.CreateDirectory(cacheDir);
         }
-
-        StringContents.Clear();
-        ImageContents.Clear();
 
         if (File.Exists(cacheFileName))
         {
-            var cached = JsonSerializer.Deserialize<InferenceResult>(await File.ReadAllTextAsync(cacheFileName));
-            if (cached is not null)
-                return cached with { PromptTokenCount = 0, CandidatesTokenCount = 0, TotalTokenCount = 0 };
-            return cached;
+            // Cache hit: no model call, so discard the buffered parts and drain the wrapped
+            // provider to make sure nothing leaks into a later inference.
+            _stringContents.Clear();
+            _imageContents.Clear();
+            inferenceProvider.Reset();
+
+            var cachedJson = await File.ReadAllTextAsync(cacheFileName);
+            var cached = JsonSerializer.Deserialize<InferenceResult>(cachedJson)
+                ?? throw new InvalidOperationException(
+                    $"Cache file '{cacheFileName}' could not be deserialized; it may be corrupt or truncated. Delete it to re-infer.");
+            return cached with { PromptTokenCount = 0, CandidatesTokenCount = 0, TotalTokenCount = 0 };
         }
 
-        var result = await InferenceProvider.Inference();
+        // Cache miss: forward the accumulated parts to the wrapped provider only now that we
+        // know a real inference is happening, then run it.
+        foreach (var content in _stringContents)
+            inferenceProvider.AddContent(content);
+        foreach (var content in _imageContents)
+            inferenceProvider.AddImage(content.Item1, content.Item2);
+
+        var result = await inferenceProvider.Inference();
+
+        // The wrapped provider cleared its own buffer inside Inference(); drop our local copy too.
+        _stringContents.Clear();
+        _imageContents.Clear();
 
         var json = JsonSerializer.Serialize(result);
         await File.WriteAllTextAsync(cacheFileName, json);

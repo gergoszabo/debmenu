@@ -4,31 +4,54 @@ using Microsoft.Extensions.Options;
 
 namespace debmenu.Providers.Inference;
 
+/// <summary>
+/// Inference provider backed by a local llama.cpp server exposing an OpenAI-compatible API.
+/// </summary>
 public class LlamaCpp : IInferenceProvider
 {
     private readonly LlamaCppOptions _options;
     private readonly HttpClient _client;
     private readonly List<Part> _parts = [];
 
+    /// <summary>
+    /// Initializes a new instance with an HTTP client pointed at the llama.cpp server.
+    /// </summary>
+    /// <param name="options">llama.cpp settings (base URL, model, sampling parameters).</param>
+    /// <param name="httpClientFactory">Factory used to create the HTTP client.</param>
     public LlamaCpp(IOptions<LlamaCppOptions> options, IHttpClientFactory httpClientFactory)
     {
         _options = options.Value;
         _client = httpClientFactory.CreateClient();
         _client.BaseAddress = new Uri(_options.BaseUrl);
         _client.Timeout = TimeSpan.FromMinutes(5);   // 27B model can be slow; speed is not a concern
-        if (!string.IsNullOrEmpty(_options.ApiKey))
-            _client.DefaultRequestHeaders.Authorization =
-                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
+        _client.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", _options.ApiKey);
     }
 
+    /// <inheritdoc/>
+    public string ProviderIdentity => $"llamacpp/{_options.Model}";
+
+    /// <summary>
+    /// Buffers a text part to be included in the next inference call.
+    /// </summary>
+    /// <param name="content">The text content.</param>
     public void AddContent(string content) => _parts.Add(new Part { Type = "text", Text = content });
 
+    /// <summary>
+    /// Buffers an image part (base64 data URL) to be included in the next inference call.
+    /// </summary>
+    /// <param name="imageBytes">The raw image bytes.</param>
+    /// <param name="mimeType">The image MIME type, e.g. <c>image/png</c>.</param>
     public void AddImage(byte[] imageBytes, string mimeType) => _parts.Add(new Part
     {
         Type = "image_url",
         ImageUrl = new() { Url = $"data:{mimeType};base64,{Convert.ToBase64String(imageBytes)}" }
     });
 
+    /// <inheritdoc/>
+    public void Reset() => _parts.Clear();
+
+    /// <inheritdoc/>
     public async Task<InferenceResult?> Inference()
     {
         var request = new ChatRequest
@@ -48,25 +71,43 @@ public class LlamaCpp : IInferenceProvider
         const int maxAttempts = 3;
         var delay = TimeSpan.FromSeconds(20);   // fixed, no backoff
         ChatResponse? body = null;
-        for (int attempt = 1; ; attempt++)
+        try
         {
-            try
+            for (int attempt = 1; attempt <= maxAttempts && body is null; attempt++)
             {
-                using var response = await _client.PostAsJsonAsync("/v1/chat/completions", request);
-                response.EnsureSuccessStatusCode();
-                body = await response.Content.ReadFromJsonAsync<ChatResponse>();
-                break;
-            }
-            catch when (attempt < maxAttempts)
-            {
-                await Task.Delay(delay);
+                if (attempt > 1)
+                    await Task.Delay(delay);
+
+                try
+                {
+                    using var response = await _client.PostAsJsonAsync("/v1/chat/completions", request);
+                    if (!response.IsSuccessStatusCode)
+                    {
+                        // Surface the server's error payload (e.g. auth, model-not-loaded, context overflow)
+                        // instead of a generic status code.
+                        var errorBody = await response.Content.ReadAsStringAsync();
+                        throw new HttpRequestException(
+                            $"llama.cpp request failed with {(int)response.StatusCode} ({response.StatusCode}): {errorBody}");
+                    }
+
+                    body = await response.Content.ReadFromJsonAsync<ChatResponse>();
+                    if (body is null)
+                        throw new HttpRequestException("llama.cpp returned a success status but the JSON body could not be deserialized.");
+                }
+                catch (HttpRequestException) when (attempt < maxAttempts)
+                {
+                    // Transient failure on a non-final attempt: back off and retry.
+                }
             }
         }
+        finally
+        {
+            _parts.Clear();
+        }
 
-        _parts.Clear();
-
+        // All attempts threw; rethrow the last failure so the caller sees the real cause.
         if (body is null)
-            throw new Exception("llama.cpp request failed after all attempts.");
+            throw new HttpRequestException("llama.cpp request failed after all attempts.");
 
         var text = body.Choices?.FirstOrDefault()?.Message?.Content;
         if (string.IsNullOrEmpty(text))

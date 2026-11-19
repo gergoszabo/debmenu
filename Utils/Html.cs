@@ -1,7 +1,13 @@
 namespace debmenu.Utils;
 
+/// <summary>
+/// Holds the HTML template used to render the final menu page.
+/// </summary>
 public static class Html
 {
+    /// <summary>
+    /// The full HTML page template. Placeholders: <c>VVV</c> (version), <c>JSON_HERE</c> (offers payload), <c>GENERATED_AT</c> (timestamp).
+    /// </summary>
     public static string Template => @"
 <!DOCTYPE html>
 <html lang=""hu"">
@@ -87,7 +93,7 @@ public static class Html
     render(allDates.includes(today) ? today : allDates[allDates.length - 1]);
 </script>
 
-<footer>version VVV</footer>
+<footer>version VVV<br/>generated at GENERATED_AT</footer>
 </body>
 </html>
 ";

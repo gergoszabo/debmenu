@@ -4,11 +4,15 @@ using Serilog;
 
 namespace debmenu.Caching;
 
+/// <summary>
+/// File-backed implementation of <see cref="IRestaurantResultCache"/> that persists offers as JSON.
+/// </summary>
 public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
 {
     private const string FilePath = "Cache/offers.json";
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = true };
 
+    /// <inheritdoc/>
     public async Task<Dictionary<string, List<string>>?> GetAsync(string restaurantName)
     {
         using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, restaurantName], logger);
@@ -28,6 +32,7 @@ public class FileRestaurantResultCache(ILogger logger) : IRestaurantResultCache
         return offers;
     }
 
+    /// <inheritdoc/>
     public async Task SetAsync(string restaurantName, Dictionary<string, List<string>> offers)
     {
         using var op = new TimedOperation("[{Class}] SetAsync", [GetType().Name, restaurantName], logger);

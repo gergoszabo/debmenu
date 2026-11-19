@@ -4,20 +4,24 @@ using Serilog;
 
 namespace debmenu;
 
+/// <summary>
+/// Aggregates menu offers from all registered restaurant scrapers.
+/// </summary>
 public class DataCollector(
     IEnumerable<IRestaurant> scrapers,
     ILogger logger) : IDataCollector
 {
-    private IEnumerable<IRestaurant> Restaurants { get; } = scrapers;
-    private ILogger Logger { get; } = logger;
-
+    /// <summary>
+    /// Collects menu offers from every registered scraper, tolerating individual failures.
+    /// </summary>
+    /// <returns>A dictionary mapping restaurant name to day-of-week to list of offer items.</returns>
     public async Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers()
     {
-        using var op = new TimedOperation("[{Class}] CollectOffers", [GetType().Name], Logger);
+        using var op = new TimedOperation("[{Class}] CollectOffers", [GetType().Name], logger);
         var allOffers = new Dictionary<string, Dictionary<string, List<string>>>();
         int totalPromptTokens = 0, totalCandidatesTokens = 0, totalTokens = 0;
 
-        foreach (var restaurant in Restaurants)
+        foreach (var restaurant in scrapers)
         {
             try
             {
@@ -33,11 +37,11 @@ public class DataCollector(
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "[{Class}] Failed to collect offers from scraper: {ScraperType}", GetType().Name, restaurant.GetType().Name);
+                logger.Error(ex, "[{Class}] Failed to collect offers from scraper: {ScraperType}", GetType().Name, restaurant.GetType().Name);
             }
         }
 
-        Logger.Information("[{Class}] Total inference cost: {PromptTokenCount} prompt + {CandidatesTokenCount} response = {TotalTokenCount} total tokens",
+        logger.Information("[{Class}] Total inference cost: {PromptTokenCount} prompt + {CandidatesTokenCount} response = {TotalTokenCount} total tokens",
             GetType().Name, totalPromptTokens, totalCandidatesTokens, totalTokens);
 
         return allOffers;

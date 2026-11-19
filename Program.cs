@@ -8,6 +8,7 @@ using debmenu.Providers.Infrastructure;
 using debmenu.Restaurants;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 
@@ -25,26 +26,26 @@ Log.Logger = new LoggerConfiguration()
 try
 {
     builder.Services.AddSerilog();
-
-    builder.Logging.AddSerilog();
-
     builder.Services.AddSingleton(Log.Logger);
 
     builder.Services.AddHttpClient();
 
-    var provider = (builder.Configuration.GetValue("Inference:Provider", "gemini") ?? "gemini").ToLowerInvariant();
+    var provider = (builder.Configuration.GetValue("Inference:Provider", "llamacpp") ?? "llamacpp").ToLowerInvariant();
+
+    // Both option sets are always bound so CachedInferenceProvider can read them, but only the
+    // selected provider's options carry validation attributes — that's what ValidateOnStart checks.
+    builder.Services.AddOptions<GeminiOptions>().Bind(builder.Configuration.GetSection("Gemini"));
+    builder.Services.AddOptions<LlamaCppOptions>().Bind(builder.Configuration.GetSection("LlamaCpp"));
 
     switch (provider)
     {
         case "llamacpp":
             builder.Services.AddOptions<LlamaCppOptions>()
-                .Bind(builder.Configuration.GetSection("LlamaCpp"))
                 .ValidateDataAnnotations().ValidateOnStart();
             builder.Services.AddKeyedTransient<IInferenceProvider, LlamaCpp>("llamacpp");
             break;
         default:
             builder.Services.AddOptions<GeminiOptions>()
-                .Bind(builder.Configuration.GetSection("Gemini"))
                 .ValidateDataAnnotations().ValidateOnStart();
             builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
             break;
@@ -74,6 +75,10 @@ try
     builder.Services.AddSingleton<IOrchestrator, Orchestrator>();
 
     using IHost host = builder.Build();
+
+    // Starts the options validation hosted services (ValidateOnStart) so missing/invalid
+    // configuration fails fast with a descriptive error before RunAsync.
+    await host.StartAsync();
 
     await host.Services.GetRequiredService<IOrchestrator>().RunAsync();
 }

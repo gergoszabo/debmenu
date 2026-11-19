@@ -13,7 +13,7 @@ while true; do
 
     # Check cron match: minutes 0,30 AND hours 8-11
     if (( (minute == 0 || minute == 30) && hour >= 8 && hour <= 11 )); then
-        ./debmenu
+        ./debmenu >> log.log 2>&1
     fi
 
     sleep 30

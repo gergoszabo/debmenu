@@ -17,33 +17,39 @@ With this little application, no need to try open many sites in a hurry, the dai
 ## What it does?
 
 -   Crawls local restaurant pages and extracts daily offers
--   Processes images using Google Gemini AI to extract menu information
+-   Extracts menu information via an AI inference backend (Google Gemini or a local llama.cpp server) — from menu images (OCR) or directly from page text, depending on the restaurant
 -   Generates a static HTML output with daily menus
 -   Uploads results to AWS S3 bucket
 -   Caches processed data for optimization
 
 ## Tech Stack
 
--   **Runtime**: .NET 10
--   **AI/ML**: Google Gemini API for image processing and OCR
+-   **Runtime**: .NET 11
+-   **AI/ML**: Pluggable inference backend — Google Gemini API or a local llama.cpp-compatible server (menu extraction / OCR)
 -   **Cloud**: AWS S3 for storage and static hosting
 
 ## Getting Started
 
 ### Prerequisites
 
--   .NET 10 SDK
+-   .NET 11 SDK
 -   AWS credentials (for S3 uploads)
--   Google Gemini API key
+-   An inference backend of your choice:
+    - a Google Gemini API key (provider `gemini`), **or**
+    - a local llama.cpp-compatible server URL + key (provider `llamacpp`)
 
 ### Configuration
 
-Set up the following configuration settings via `dotnet user-secrets` (development) or environment variables / Kubernetes secrets (production):
+Set up the following configuration settings via `dotnet user-secrets` (development) or environment variables (production):
 
 | Configuration Key | Environment Variable | Description |
 |---|---|---|
-| `Gemini:ApiKey` | `Gemini__ApiKey` | Google Gemini API key (Required) |
+| `Inference:Provider` | `Inference__Provider` | Inference backend: `llamacpp` (default, set in `appsettings.json`) or `gemini`. Selects which provider is validated at startup |
+| `Gemini:ApiKey` | `Gemini__ApiKey` | Google Gemini API key (Required when `Inference:Provider` = `gemini`) |
 | `Gemini:Model` | `Gemini__Model` | Gemini model name (Optional, defaults to `gemini-3.1-flash-lite`) |
+| `LlamaCpp:BaseUrl` | `LlamaCpp__BaseUrl` | llama.cpp-compatible server base URL (Required when `Inference:Provider` = `llamacpp`) |
+| `LlamaCpp:ApiKey` | `LlamaCpp__ApiKey` | llama.cpp API key (Required when `Inference:Provider` = `llamacpp`) |
+| `LlamaCpp:Model` | `LlamaCpp__Model` | Model served by the llama.cpp server (set in `appsettings.json`) |
 | `AWS:SecretAccessKeyId` | `AWS__SecretAccessKeyId` | AWS access key ID (Required) |
 | `AWS:SecretAccessKey` | `AWS__SecretAccessKey` | AWS secret access key (Required) |
 | `AWS:Region` | `AWS__Region` | AWS region (Configured in `appsettings.json`, e.g. `eu-central-2`) |
@@ -53,12 +59,16 @@ Set up the following configuration settings via `dotnet user-secrets` (developme
 
 ```bash
 dotnet user-secrets init
+# Select the backend, then set its key (Gemini example):
+dotnet user-secrets set "Inference:Provider" "gemini"
 dotnet user-secrets set "Gemini:ApiKey" "<YOUR_GEMINI_API_KEY>"
+# ...or for a local llama.cpp server:
+# dotnet user-secrets set "Inference:Provider" "llamacpp"
+# dotnet user-secrets set "LlamaCpp:BaseUrl" "http://localhost:8080"
+# dotnet user-secrets set "LlamaCpp:ApiKey" "<YOUR_LLAMACPP_API_KEY>"
 dotnet user-secrets set "AWS:SecretAccessKeyId" "<YOUR_AWS_ACCESS_KEY_ID>"
 dotnet user-secrets set "AWS:SecretAccessKey" "<YOUR_AWS_SECRET_ACCESS_KEY>"
 ```
-
-Or update `K3S/debmenu-secrets.yaml` with proper values and apply via `kubectl apply -f K3S/debmenu-secrets.yaml`.
 
 ### Usage
 
@@ -71,9 +81,6 @@ dotnet build
 
 # Publish for Linux x64
 dotnet publish -o publish --os linux -a x64
-
-# Deploy to Kubernetes cluster (builds Docker image, prepares manifests, and applies to K3s)
-dotnet msbuild -t:K3sDeploy
 ```
 
 ## License
