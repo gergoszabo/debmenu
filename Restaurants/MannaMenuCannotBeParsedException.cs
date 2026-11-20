@@ -2,7 +2,7 @@ namespace debmenu.Restaurants;
 
 public class MannaMenuCannotBeParsedException : Exception
 {
-    public MannaMenuCannotBeParsedException() : this("There was an error during Manna menu parsing")
+    public MannaMenuCannotBeParsedException() : this(debmenu_Resources_ErrorMessages.MannaMenuCannotBeParsed)
     {
     }
 

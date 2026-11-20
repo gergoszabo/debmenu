@@ -17,7 +17,7 @@ public class DataCollector(
     /// <returns>A dictionary mapping restaurant name to day-of-week to list of offer items.</returns>
     public async Task<Dictionary<string, Dictionary<string, List<string>>>> CollectOffers()
     {
-        using var op = new TimedOperation("[{Class}] CollectOffers", [GetType().Name], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(CollectOffers));
         var allOffers = new Dictionary<string, Dictionary<string, List<string>>>();
         int totalPromptTokens = 0, totalCandidatesTokens = 0, totalTokens = 0;
 

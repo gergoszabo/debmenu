@@ -2,7 +2,7 @@ namespace debmenu.Restaurants;
 
 public class MannaHetiMenuNotFoundException : Exception
 {
-    public MannaHetiMenuNotFoundException() : this("Manna 'Heti menü' was not found.")
+    public MannaHetiMenuNotFoundException() : this(debmenu_Resources_ErrorMessages.MannaHetiMenuNotFound)
     {
     }
 

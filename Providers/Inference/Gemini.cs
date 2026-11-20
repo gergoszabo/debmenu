@@ -9,23 +9,20 @@ namespace debmenu.Providers.Inference;
 /// </summary>
 public class Gemini : IInferenceProvider, IDisposable
 {
-    private GeminiOptions Options { get; }
     private readonly Client client;
+    private readonly string model;
+
+    public Gemini(IOptions<GeminiOptions> options)
+    {
+        var opts = options.Value;
+        model = opts.Model;
+        client = new Client(apiKey: opts.ApiKey);
+    }
 
     private readonly List<Part> ContentParts = [];
 
     /// <inheritdoc/>
-    public string ProviderIdentity => $"gemini/{Options.Model}";
-
-    /// <summary>
-    /// Initializes a new instance with the Gemini API client.
-    /// </summary>
-    /// <param name="options">Gemini settings (API key, model).</param>
-    public Gemini(IOptions<GeminiOptions> options)
-    {
-        Options = options.Value;
-        client = new(apiKey: Options.ApiKey);
-    }
+    public string ProviderIdentity => $"gemini/{model}";
 
     /// <summary>
     /// Buffers a text part to be included in the next inference call.
@@ -78,7 +75,7 @@ public class Gemini : IInferenceProvider, IDisposable
         };
 
         var response = await client.Models.GenerateContentAsync(
-            model: Options.Model,
+            model: model,
             contents: content,
             config: new GenerateContentConfig
             {

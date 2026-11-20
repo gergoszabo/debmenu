@@ -15,7 +15,7 @@ public class FileRestaurantResultCache(IPathProvider pathProvider, ILogger logge
     /// <inheritdoc/>
     public async Task<Dictionary<string, List<string>>?> GetAsync(string restaurantName)
     {
-        using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, restaurantName], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(GetAsync), restaurantName);
 
         var filePath = pathProvider.Combine("Cache", "offers.json");
         if (!File.Exists(filePath))
@@ -36,7 +36,7 @@ public class FileRestaurantResultCache(IPathProvider pathProvider, ILogger logge
     /// <inheritdoc/>
     public async Task SetAsync(string restaurantName, Dictionary<string, List<string>> offers)
     {
-        using var op = new TimedOperation("[{Class}] SetAsync", [GetType().Name, restaurantName], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(SetAsync), restaurantName);
 
         var filePath = pathProvider.Combine("Cache", "offers.json");
         Dictionary<string, Dictionary<string, List<string>>> all;

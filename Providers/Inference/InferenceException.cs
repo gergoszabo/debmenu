@@ -6,7 +6,7 @@ namespace debmenu.Providers.Inference;
 /// </summary>
 public class InferenceException : Exception
 {
-    public InferenceException() : this("Inference failed.")
+    public InferenceException() : this(debmenu_Resources_ErrorMessages.InferenceFailed)
     {
     }
 

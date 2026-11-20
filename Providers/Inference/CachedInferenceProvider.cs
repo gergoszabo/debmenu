@@ -55,7 +55,7 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, IPath
     /// <inheritdoc/>
     public async Task<InferenceResult?> Inference()
     {
-        using var op = new TimedOperation("[{Class}] Inference", [GetType().Name], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(Inference));
 
         List<byte> hashes = [];
 

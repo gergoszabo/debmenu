@@ -2,6 +2,9 @@ namespace debmenu.Utils;
 
 public static class PromptConstants
 {
+    /// <summary>
+    /// Task prompt for locating the menu image link within a page's HTML.
+    /// </summary>
     public const string ExtractImageLinkTask = """
   Extract the image links for \"heti étlap\", \"heti menü\" or the single one with high fetch priority from this piece of html.
   Only return the links, nothing else.

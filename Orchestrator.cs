@@ -22,7 +22,7 @@ public class Orchestrator(IDataCollector dataCollector,
     /// <returns>A task representing the asynchronous operation.</returns>
     public async Task RunAsync()
     {
-        using var op = new TimedOperation("[{Class}] RunAsync", [GetType().Name], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(RunAsync));
 
         string? version = Assembly.GetExecutingAssembly()
             .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?

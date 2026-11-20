@@ -27,10 +27,15 @@ public class AWS : IInfrastructureProvider, IDisposable
     {
         _options = options.Value;
         _logger = logger;
-        var regionEndpoint = RegionEndpoint.EnumerableAllRegions.Single(region => region.SystemName == _options.Region);
+        _s3Client = CreateS3Client(_options);
+    }
+
+    private static AmazonS3Client CreateS3Client(AWSOptions options)
+    {
+        var regionEndpoint = RegionEndpoint.EnumerableAllRegions.Single(region => region.SystemName == options.Region);
         // Held for the app lifetime (the upload runs exactly once) and disposed on Dispose().
-        _s3Client = new AmazonS3Client(
-            new BasicAWSCredentials(_options.SecretAccessKeyId, _options.SecretAccessKey),
+        return new AmazonS3Client(
+            new BasicAWSCredentials(options.SecretAccessKeyId, options.SecretAccessKey),
             regionEndpoint);
     }
 
@@ -42,7 +47,7 @@ public class AWS : IInfrastructureProvider, IDisposable
     /// <returns>A task representing the asynchronous upload operation.</returns>
     public async Task Upload(string content, string fileName)
     {
-        using var op = new TimedOperation("[{Class}] Upload {fileName}", [GetType().Name, fileName], _logger);
+        using var op = _logger.CreateTimedOperation(GetType(), nameof(Upload), fileName);
 
         var putRequest = new PutObjectRequest
         {

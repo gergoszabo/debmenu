@@ -42,3 +42,28 @@ public class TimedOperation : IDisposable
         Logger.Information($"{MessageTemplate} took {Stopwatch.GetElapsedTime(StartedAt)}", Args);
     }
 }
+
+/// <summary>
+/// Factory helpers for creating <see cref="TimedOperation"/> instances with a consistent
+/// <c>[Class] Method</c> template, so call sites do not hand-roll the class name.
+/// </summary>
+public static class TimedOperationExtensions
+{
+    /// <summary>
+    /// Creates a <see cref="TimedOperation"/> whose template is <c>[{Class}] {methodName}</c>,
+    /// bound to the calling type's name and any extra arguments.
+    /// </summary>
+    /// <param name="logger">The logger used to emit start and duration messages.</param>
+    /// <param name="callerType">The type whose simple name is reported as the class.</param>
+    /// <param name="methodName">The method or operation being timed.</param>
+    /// <param name="args">Optional extra structured arguments appended after the method name.</param>
+    public static TimedOperation CreateTimedOperation(this ILogger logger, Type callerType, string methodName, params object[] args)
+    {
+        var template = $"[{{Class}}] {methodName}";
+        var allArgs = new object[args.Length + 2];
+        allArgs[0] = callerType.Name;
+        allArgs[1] = methodName;
+        Array.Copy(args, 0, allArgs, 2, args.Length);
+        return new TimedOperation(template, allArgs, logger);
+    }
+}

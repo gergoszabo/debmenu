@@ -6,6 +6,11 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+/// <summary>
+/// Scraper for the Manna étterem weekly menu, fetched from its JSON product API.
+/// The response is parsed directly (no AI inference); offers are grouped by their
+/// <c>expected_at</c> date and filtered to the current calendar week.
+/// </summary>
 public sealed class Manna(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
@@ -45,7 +50,7 @@ public sealed class Manna(
         {
             if (product.ExpectedAt is null)
             {
-                logger.Warning("Skipping {Name} because there is no ExpectedAt defined", product.Name);
+                Logger.Warning("Skipping {Name} because there is no ExpectedAt defined", product.Name);
                 continue;
             }
 

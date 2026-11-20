@@ -6,6 +6,11 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+/// <summary>
+/// Scraper for the Govinda étterem weekly menu. The page is dissected down to plain text
+/// (headings preserved as markers) before being fed to the text extraction workflow, since
+/// the raw HTML overflows the model's context window.
+/// </summary>
 public class Govinda(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
@@ -41,6 +46,8 @@ public class Govinda(
 
     internal static string DissectMenuHtml(string html)
     {
+        if (html is null) throw new ArgumentNullException(nameof(html));
+
         // Keep only the body; it holds all the menu content.
         var bodyMatch = System.Text.RegularExpressions.Regex.Match(html, @"<body[^>]*>(.*)</body>",
             System.Text.RegularExpressions.RegexOptions.Singleline | System.Text.RegularExpressions.RegexOptions.IgnoreCase);

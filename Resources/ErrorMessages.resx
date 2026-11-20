@@ -33,4 +33,16 @@
   <data name="UnsupportedFileExtension" xml:space="preserve">
     <value>File extension '{0}' is not supported.</value>
   </data>
+  <data name="MannaMenuCannotBeParsed" xml:space="preserve">
+    <value>There was an error during Manna menu parsing.</value>
+  </data>
+  <data name="MannaHetiMenuNotFound" xml:space="preserve">
+    <value>Manna 'Heti menü' was not found.</value>
+  </data>
+  <data name="OfferExtractionFailed" xml:space="preserve">
+    <value>Failed to extract offers.</value>
+  </data>
+  <data name="InferenceFailed" xml:space="preserve">
+    <value>Inference failed.</value>
+  </data>
 </root>

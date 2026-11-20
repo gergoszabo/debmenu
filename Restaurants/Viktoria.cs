@@ -5,6 +5,10 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+/// <summary>
+/// Scraper for the Viktória étterem weekly menu. The page is dissected down to the menu
+/// section before being fed to the text extraction workflow.
+/// </summary>
 public class Viktoria(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
@@ -37,6 +41,8 @@ public class Viktoria(
 
     internal static string DissectMenuHtml(string html)
     {
+        if (html is null) throw new ArgumentNullException(nameof(html));
+
         // Keep only the menu section; fall back to the body, then the whole page.
         var scope = html;
         var mainStart = Regex.Match(html, @"<div[^>]*site-main[^>]*>");

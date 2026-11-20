@@ -15,7 +15,7 @@ public class FileHttpResourceStateStore(IPathProvider pathProvider, ILogger logg
     /// <inheritdoc/>
     public async Task<HttpResourceState?> GetAsync(string url)
     {
-        using var op = new TimedOperation("[{Class}] GetAsync", [GetType().Name, url], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(GetAsync), url);
 
         var filePath = pathProvider.Combine("Cache", "http-states.json");
         if (!File.Exists(filePath))
@@ -36,7 +36,7 @@ public class FileHttpResourceStateStore(IPathProvider pathProvider, ILogger logg
     /// <inheritdoc/>
     public async Task SetAsync(string url, HttpResourceState state)
     {
-        using var op = new TimedOperation("[{Class}] SetAsync", [GetType().Name, url], logger);
+        using var op = logger.CreateTimedOperation(GetType(), nameof(SetAsync), url);
         if (state.ETag == null && state.LastModified == null)
         {
             logger.Warning("[{Class}] HTTP state not saved for {Url}: Both ETag and LastModified were null, skipping cache update.", GetType().Name, url);

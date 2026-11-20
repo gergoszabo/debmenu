@@ -5,7 +5,7 @@ namespace debmenu.Restaurants;
 /// </summary>
 public class OfferExtractionException : Exception
 {
-    public OfferExtractionException() : this("Failed to extract offers.")
+    public OfferExtractionException() : this(debmenu_Resources_ErrorMessages.OfferExtractionFailed)
     {
     }
 

@@ -7,6 +7,11 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+/// <summary>
+/// Base class for restaurant scrapers. Provides the shared fetch/cache/inference pipeline:
+/// HTTP state tracking, result caching, image/text extraction workflows, inference cost
+/// accounting and date filtering. Concrete scrapers override the workflow hooks they need.
+/// </summary>
 public abstract class Restaurant(string url,
     IHttpClientFactory httpClientFactory,
     IInferenceProvider inferenceProvider,
@@ -27,6 +32,12 @@ public abstract class Restaurant(string url,
     protected List<string> ExtractInstructions { get; } = [PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
     protected List<string> ExtraInstructions { get; } = extraInstructions;
 
+    /// <summary>
+    /// The logger, exposed to derived scrapers so they do not need their own primary-constructor parameter.
+    /// </summary>
+    protected ILogger Logger => logger;
+
+    /// <inheritdoc/>
     public InferenceResult? TotalInferenceCost { get; private set; }
 
     private const string UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
@@ -35,6 +46,7 @@ public abstract class Restaurant(string url,
     private int _totalCandidatesTokens = 0;
     private int _totalTokens = 0;
 
+    /// <inheritdoc/>
     public virtual async Task<Dictionary<string, List<string>>> GetOffersAsync()
     {
         return await GetOffersWithCachingAsync(() => ImageWorkflow());
@@ -211,31 +223,30 @@ public abstract class Restaurant(string url,
     {
         if (offers is null) throw new ArgumentNullException(nameof(offers));
 
-        // Calculate the start of the current calendar week (Monday 00:00:00 UTC).                                                                                                                           
-        // This assumes Monday is the first day of the week.                                                                                                                                                 
+        // Start of the current calendar week (Monday 00:00:00 UTC); Monday is treated as the first day.
         var now = DateTime.UtcNow;
         var startOfWeek = now.Date.AddDays(-(now.DayOfWeek == DayOfWeek.Sunday ? 6 : (int)now.DayOfWeek - 1));
 
-        // Filter out dates before the current calendar week.                                                                                                                                                
-        var filteredOffers = offers
-            .Where(kvp =>
+        // Keep only offers dated within the current calendar week. Keys that do not parse as a
+        // YYYY-MM-DD date are dropped; log them so a malformed model response is diagnosable.
+        var filteredOffers = new Dictionary<string, List<string>>();
+        foreach (var kvp in offers)
+        {
+            if (DateTime.TryParse(kvp.Key, out var date) && date >= startOfWeek)
             {
-                if (DateTime.TryParse(kvp.Key, out var date))
-                {
-                    return date >= startOfWeek;
-                }
-                // If parsing fails, we might treat it as invalid and discard it, or keep it if robustness is key.                                                                                           
-                // Since the prompt implies structured data, let's assume valid YYYY-MM-DD format for keys.                                                                                                  
-                // For safety, I will only include keys that successfully parse to a date >= startOfWeek.                                                                                                    
-                return false;
-            })
-            .ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                filteredOffers[kvp.Key] = kvp.Value;
+            }
+            else
+            {
+                Logger.Debug("[{Class}] Dropped offer entry with unparsable or outdated date key: {DateKey}", GetType().Name, kvp.Key);
+            }
+        }
 
         return filteredOffers;
     }
 
     protected TimedOperation CreateTimedOperation(string methodName, params object[] args)
     {
-        return new TimedOperation("[{Class}] {Method} {args}", [GetType().Name, methodName, string.Join(' ', args)], logger);
+        return logger.CreateTimedOperation(GetType(), methodName, args);
     }
 }

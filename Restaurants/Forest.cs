@@ -5,6 +5,10 @@ using Serilog;
 
 namespace debmenu.Restaurants;
 
+/// <summary>
+/// Scraper for the Forest étterem weekly menu. Locates the "Heti étlap" menu image on the
+/// page and extracts offers from it via the image workflow.
+/// </summary>
 public class Forest(
     IInferenceProvider inferenceProvider,
     IHttpClientFactory httpClientFactory,
