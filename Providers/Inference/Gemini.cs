@@ -1,4 +1,3 @@
-using Amazon.Runtime.Internal.Util;
 using Google.GenAI;
 using Google.GenAI.Types;
 using Microsoft.Extensions.Options;
@@ -96,7 +95,7 @@ public class Gemini : IInferenceProvider, IDisposable
 
         if (string.IsNullOrEmpty(textContent))
         {
-            throw new Exception(debmenu_Resources_ErrorMessages.NoTextContentFoundInResponse);
+            throw new InferenceException(debmenu_Resources_ErrorMessages.NoTextContentFoundInResponse);
         }
 
         var usage = response?.UsageMetadata;

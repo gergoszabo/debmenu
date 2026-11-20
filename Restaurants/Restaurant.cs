@@ -15,13 +15,17 @@ public abstract class Restaurant(string url,
     IHttpResourceStateStore stateStore,
     IRestaurantResultCache resultCache) : IRestaurant
 {
+    /// <summary>
+    /// Image workflows override this to use the image-specific extraction task; text workflows
+    /// keep the default, which does not mention images.
+    /// </summary>
     protected virtual string ExtractTask => PromptConstants.ResponseExtractTask;
     /// <summary>
     /// The extraction task instruction. Restaurants with unusual input formats (e.g. plain text
     /// instead of raw HTML) can override this; the response structure and date grounding stay shared.
     /// </summary>
-    protected List<string> ExtractInstructions { get; set; } = [PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
-    protected List<string> ExtraInstructions { get; set; } = extraInstructions;
+    protected List<string> ExtractInstructions { get; } = [PromptConstants.ResponseStructure, PromptConstants.DateGrounding, PromptConstants.YearGrounding];
+    protected List<string> ExtraInstructions { get; } = extraInstructions;
 
     public InferenceResult? TotalInferenceCost { get; private set; }
 
@@ -179,7 +183,7 @@ public abstract class Restaurant(string url,
     protected async Task<string?> ExtractOffersFromImage(byte[] imageBytes, string imageLink, List<string> extractInstructions)
     {
         using var _ = CreateTimedOperation(nameof(ExtractOffersFromImage), $"{imageBytes.Length} bytes", imageLink);
-        var mimeType = StringUtils.GetMimeTypeFromFilePath(imageLink);
+        var mimeType = imageLink.GetMimeTypeFromFilePath();
         inferenceProvider.AddImage(imageBytes, mimeType);
         inferenceProvider.AddContent(string.Join(' ', extractInstructions));
         var result = await inferenceProvider.Inference();

@@ -1,6 +1,4 @@
-﻿// namespace debmenu;
-
-using System.Reflection;
+﻿using System.Reflection;
 using debmenu;
 using debmenu.Caching;
 using debmenu.Providers.Inference;
@@ -43,12 +41,18 @@ try
         case "llamacpp":
             builder.Services.AddOptions<LlamaCppOptions>()
                 .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddKeyedTransient<IInferenceProvider, LlamaCpp>("llamacpp");
+            // Singleton: the provider buffers content between AddContent/AddImage and Inference,
+            // so it must be shared across all restaurants; a transient registration would also
+            // leak its resources (no DI-owned disposal path for keyed transients).
+            builder.Services.AddKeyedSingleton<IInferenceProvider, LlamaCpp>("llamacpp");
             break;
         default:
             builder.Services.AddOptions<GeminiOptions>()
                 .ValidateDataAnnotations().ValidateOnStart();
-            builder.Services.AddKeyedTransient<IInferenceProvider, Gemini>("gemini");
+            // Singleton: the provider buffers content between AddContent/AddImage and Inference,
+            // so it must be shared across all restaurants. DI disposes keyed singletons at
+            // host shutdown (Gemini owns a disposable GenAI Client).
+            builder.Services.AddKeyedSingleton<IInferenceProvider, Gemini>("gemini");
             break;
     }
 

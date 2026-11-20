@@ -1,5 +1,6 @@
 using System.Text.Json;
 using debmenu.Logging;
+using debmenu.Utils;
 using Serilog;
 
 namespace debmenu.Caching;
@@ -56,12 +57,8 @@ public class FileHttpResourceStateStore(IPathProvider pathProvider, ILogger logg
 
         states[url] = state;
 
-        var cacheDir = pathProvider.Combine("Cache");
-        if (!Directory.Exists(cacheDir))
-            Directory.CreateDirectory(cacheDir);
-
         var newJson = JsonSerializer.Serialize(states, JsonOptions);
-        await File.WriteAllTextAsync(filePath, newJson);
+        await AtomicFileWriter.WriteTextAtomicAsync(filePath, newJson);
 
         logger.Information("[{Class}] HTTP state saved for {Url} (ETag: {Etag}, LastModified: {LastModified})",
             GetType().Name, url, state.ETag ?? "(none)", state.LastModified ?? "(none)");

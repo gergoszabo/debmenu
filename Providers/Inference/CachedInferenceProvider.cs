@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using debmenu.Logging;
+using debmenu.Utils;
 using Serilog;
 
 namespace debmenu.Providers.Inference;
@@ -37,10 +38,10 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, IPath
     /// Buffers an image part for the next inference call (served from cache when possible).
     /// </summary>
     /// <param name="imageBytes">The raw image bytes.</param>
-    /// <param name="fileName">The file name, used to derive the MIME type and as a cache key component.</param>
-    public void AddImage(byte[] imageBytes, string fileName)
+    /// <param name="mimeType">The image MIME type, e.g. <c>image/png</c>; also used as a cache key component.</param>
+    public void AddImage(byte[] imageBytes, string mimeType)
     {
-        _imageContents.Add(new(imageBytes, fileName));
+        _imageContents.Add(new(imageBytes, mimeType));
     }
 
     /// <inheritdoc/>
@@ -73,12 +74,6 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, IPath
 
         var cacheFileName = pathProvider.Combine("Cache", CacheNamespace.Replace('/', '_'), finalHash);
 
-        var cacheDir = Path.GetDirectoryName(cacheFileName)!;
-        if (!Directory.Exists(cacheDir))
-        {
-            Directory.CreateDirectory(cacheDir);
-        }
-
         if (File.Exists(cacheFileName))
         {
             // Cache hit: no model call, so discard the buffered parts and drain the wrapped
@@ -101,14 +96,16 @@ public class CachedInferenceProvider(IInferenceProvider inferenceProvider, IPath
         foreach (var content in _imageContents)
             inferenceProvider.AddImage(content.Item1, content.Item2);
 
-        var result = await inferenceProvider.Inference();
+        var result = (await inferenceProvider.Inference())
+            ?? throw new InferenceException(
+                $"Inference provider '{inferenceProvider.ProviderIdentity}' returned no result; nothing was cached.");
 
         // The wrapped provider cleared its own buffer inside Inference(); drop our local copy too.
         _stringContents.Clear();
         _imageContents.Clear();
 
         var json = JsonSerializer.Serialize(result);
-        await File.WriteAllTextAsync(cacheFileName, json);
+        await AtomicFileWriter.WriteTextAtomicAsync(cacheFileName, json);
 
         return result;
     }

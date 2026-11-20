@@ -1,9 +1,9 @@
 namespace debmenu.Utils;
 
 /// <summary>
-/// Utility helpers for working with file paths and MIME types.
+/// Maps file extensions to MIME types.
 /// </summary>
-public static class StringUtils
+public static class MimeTypes
 {
     /// <summary>
     /// Determines the MIME type of an image from its file extension.

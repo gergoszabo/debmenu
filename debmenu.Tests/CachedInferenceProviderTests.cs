@@ -100,26 +100,46 @@ public class CachedInferenceProviderTests : TestContextBase
     }
 
     [TestMethod]
-    public async Task Inference_WhenCacheFileCorrupt_ThrowsInvalidOperationException()
+    public async Task Inference_WhenInnerReturnsNull_ThrowsInferenceException_AndDoesNotWriteCache()
     {
-        // Arrange: create a cache file whose content does not deserialize to an InferenceResult.
+        // Arrange: a provider that returns null must not poison the cache with a "null" file.
         var inner = new FakeInferenceProvider();
         var provider = CreateProvider(inner);
         provider.AddContent("prompt");
-        await provider.Inference();
+
+        // Act
+        Func<Task> act = () => provider.Inference();
+
+        // Assert: specific exception, and no cache file left behind for this hash.
+        await act.Should().ThrowAsync<InferenceException>();
+        if (Directory.Exists(_root))
+            Directory.EnumerateFiles(_root, "*", SearchOption.AllDirectories).Should().BeEmpty();
+    }
+
+    [TestMethod]
+    public async Task Inference_WhenCacheFileCorrupt_ThrowsInvalidOperationException()
+    {
+        // Arrange: seed a cache file for the prompt's hash, then corrupt it.
+        var seeder = new FakeInferenceProvider { ResultToReturn = new("seed", 1, 1, 2) };
+        var seederProvider = CreateProvider(seeder);
+        seederProvider.AddContent("prompt");
+        await seederProvider.Inference();
+
+        var inner = new FakeInferenceProvider();
+        var provider = CreateProvider(inner);
 
         var cacheFile = Directory.EnumerateFiles(_root, "*", SearchOption.AllDirectories).Single();
-        // Content that deserializes to null: the A4 corrupt-cache path.
+        // Content that deserializes to null: the corrupt-cache path.
         await File.WriteAllTextAsync(cacheFile, "null");
 
         // Act
         provider.AddContent("prompt");
         Func<Task> act = () => provider.Inference();
 
-        // Assert: it throws, and no new inference happens (the earlier call already wrote the file).
+        // Assert: it throws, and no new inference happens (the cache file was never read successfully).
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*could not be deserialized*");
-        inner.InferenceCallCount.Should().Be(1);
+        inner.InferenceCallCount.Should().Be(0);
     }
 
     private CachedInferenceProvider CreateProvider(FakeInferenceProvider inner)

@@ -3,10 +3,10 @@ using debmenu.Utils;
 namespace debmenu.Tests;
 
 /// <summary>
-/// Tests for <see cref="StringUtils.GetMimeTypeFromFilePath"/>.
+/// Tests for <see cref="MimeTypes.GetMimeTypeFromFilePath(string)"/>.
 /// </summary>
 [TestClass]
-public class StringUtilsTests
+public class MimeTypesTests
 {
     [TestMethod]
     [DataRow("photo.jpg", "image/jpeg")]

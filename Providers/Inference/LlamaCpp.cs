@@ -112,7 +112,7 @@ public class LlamaCpp : IInferenceProvider
 
         var text = body.Choices?.FirstOrDefault()?.Message?.Content;
         if (string.IsNullOrEmpty(text))
-            throw new Exception(debmenu_Resources_ErrorMessages.NoTextContentFoundInResponse);
+            throw new InferenceException(debmenu_Resources_ErrorMessages.NoTextContentFoundInResponse);
 
         return new InferenceResult(
             text!.Replace("```json", "").Replace("```", "").Trim(),   // same cleanup Gemini does

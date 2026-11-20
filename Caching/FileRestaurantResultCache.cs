@@ -1,5 +1,6 @@
 using System.Text.Json;
 using debmenu.Logging;
+using debmenu.Utils;
 using Serilog;
 
 namespace debmenu.Caching;
@@ -51,12 +52,8 @@ public class FileRestaurantResultCache(IPathProvider pathProvider, ILogger logge
 
         all[restaurantName] = offers;
 
-        var cacheDir = pathProvider.Combine("Cache");
-        if (!Directory.Exists(cacheDir))
-            Directory.CreateDirectory(cacheDir);
-
         var newJson = JsonSerializer.Serialize(all, JsonOptions);
-        await File.WriteAllTextAsync(filePath, newJson);
+        await AtomicFileWriter.WriteTextAtomicAsync(filePath, newJson);
 
         logger.Information("[{Class}] Cached offers for {Restaurant} ({Count} days)", GetType().Name, restaurantName, offers.Count);
     }
